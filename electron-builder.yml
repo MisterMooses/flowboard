@@ -1,0 +1,31 @@
+appId: com.flowboard.app
+productName: Flowboard
+copyright: "Copyright © 2025 Flowboard"
+
+directories:
+  output: dist
+  buildResources: assets
+
+files:
+  - main.js
+  - preload.js
+  - src/**
+  - assets/**
+  - "!assets/icon.png"
+  - "!**/*.map"
+
+win:
+  target: nsis
+  icon: assets/icon.ico
+  publisherName: Flowboard
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: false
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  shortcutName: Flowboard
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  license: LICENSE.txt

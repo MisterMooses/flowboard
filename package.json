@@ -9,42 +9,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win --x64"
-  },
-  "build": {
-    "appId": "com.flowboard.app",
-    "productName": "Flowboard",
-    "copyright": "Copyright © 2025 Flowboard",
-    "directories": {
-      "output": "dist",
-      "buildResources": "assets"
-    },
-    "win": {
-      "target": "nsis",
-      "icon": "assets/icon.ico",
-      "publisherName": "Flowboard"
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": false,
-      "installerIcon": "assets/icon.ico",
-      "uninstallerIcon": "assets/icon.ico",
-      "shortcutName": "Flowboard",
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "menuCategory": "Flowboard",
-      "deleteAppDataOnUninstall": false,
-      "license": "LICENSE.txt"
-    },
-    "files": [
-      "main.js",
-      "preload.js",
-      "src/**",
-      "assets/**",
-      "!assets/icon.png",
-      "!**/*.map"
-    ]
+    "build": "electron-builder --win --x64 --config electron-builder.yml"
   },
   "devDependencies": {
     "electron": "^31.0.0",
