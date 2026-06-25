@@ -36,7 +36,6 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 #titlebar-left { display:flex; align-items:center; gap:8px; flex:1; }
 #app-logo { font-size:15px; font-weight:600; letter-spacing:-0.3px; color:var(--text); display:flex; align-items:center; gap:6px; }
 #app-logo span { color:var(--accent); }
-#titlebar-center { flex:1; text-align:center; font-size:11px; color:var(--text-dim); letter-spacing:0.05em; text-transform:uppercase; }
 #titlebar-right { display:flex; align-items:stretch; -webkit-app-region:no-drag; height:var(--titlebar-h); }
 .win-btn {
   width:46px; height:100%; border:none; background:none; cursor:pointer;
@@ -253,6 +252,49 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
   background:var(--accent-dim); padding:1px 8px; border-radius:20px;
 }
 
+
+/* LIGHT MODE */
+body.light {
+  --bg: #F0F2F7;
+  --surface: #FFFFFF;
+  --surface2: #F4F6FB;
+  --surface3: #E4E8F2;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.15);
+  --text: #111827;
+  --text-muted: #4B5563;
+  --text-dim: #9CA3AF;
+  --accent: #5B52E8;
+  --accent-dim: rgba(91,82,232,0.12);
+  --accent-glow: rgba(91,82,232,0.08);
+  --col-done: #059669;
+  --on-hold: #94A3B8;
+  --danger: #DC2626;
+}
+body.light .win-btn:hover { background:rgba(0,0,0,0.07); }
+body.light #btn-close:hover { background:#c42b1c; color:#fff; }
+body.light .card-btn:hover { background:#dde2f0; }
+body.light .card.on-hold { background:#edf0f7; border-color:#94A3B8; }
+body.light .hold-badge { color:#475569; background:#e2e8f0; border-color:#CBD5E1; }
+body.light .card.done { background:#ecfdf5; border-color:rgba(5,150,105,0.4); }
+body.light .card.done .card-title { color:#065f46; }
+body.light .card-btn.complete:hover { color:#059669; border-color:rgba(5,150,105,0.4); background:rgba(5,150,105,0.08); }
+body.light .card-btn.complete-active { color:#059669; border-color:rgba(5,150,105,0.4); background:rgba(5,150,105,0.08); }
+body.light .card-btn.hold-active { color:#B45309; border-color:rgba(180,83,9,0.35); background:rgba(180,83,9,0.08); }
+body.light .card-btn.del:hover { color:#DC2626; border-color:rgba(220,38,38,0.3); }
+body.light .card-due.overdue { color:#DC2626; }
+body.light .card-due.soon { color:#B45309; }
+body.light .priority-badge.p-critical { background:#fef2f2; color:#DC2626; border-color:rgba(220,38,38,0.35); }
+body.light .priority-badge.p-high     { background:#f5f3ff; color:#5B52E8; border-color:rgba(91,82,232,0.35); }
+body.light .priority-badge.p-medium   { background:#fffbeb; color:#B45309; border-color:rgba(180,83,9,0.3); }
+body.light .priority-badge.p-low      { background:#f8fafc; color:#64748B; border-color:rgba(100,116,139,0.3); }
+body.light .tag-row-del:hover { color:#DC2626; background:rgba(220,38,38,0.07); border-color:rgba(220,38,38,0.25); }
+body.light .fb-tooltip { background:#1f2937; border-color:rgba(0,0,0,0.2); color:#f9fafb; }
+body.light .modal-overlay { background:rgba(0,0,0,0.35); }
+body.light #board::-webkit-scrollbar-thumb { background:#CBD5E1; }
+body.light #sidebar::-webkit-scrollbar-thumb { background:#CBD5E1; }
+body.light .column.drag-over { background:rgba(91,82,232,0.04); }
+
 /* TOOLTIP */
 .fb-tooltip { position:fixed; z-index:9999; pointer-events:none; background:#0a0c13; border:0.5px solid var(--border2); color:var(--text); font-size:11px; font-family:'Inter',sans-serif; padding:4px 9px; border-radius:5px; white-space:nowrap; opacity:0; transition:opacity 0.12s; }
 .fb-tooltip.visible { opacity:1; }
@@ -266,8 +308,11 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
   <div id="titlebar-left">
     <div id="app-logo"><i class="ti ti-layout-kanban"></i><span>Flow</span>board</div>
   </div>
-  <div id="titlebar-center">Personal Kanban</div>
   <div id="titlebar-right">
+    <button class="win-btn" id="btn-theme" data-tip="Toggle light/dark mode" aria-label="Toggle theme" style="width:40px">
+      <svg id="icon-theme-dark" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 9.5A6.5 6.5 0 0 1 4.5 1 6.5 6.5 0 1 0 13 9.5z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></svg>
+      <svg id="icon-theme-light" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none"><circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="1"/><line x1="7" y1="0.5" x2="7" y2="2.5" stroke="currentColor" stroke-width="1"/><line x1="7" y1="11.5" x2="7" y2="13.5" stroke="currentColor" stroke-width="1"/><line x1="0.5" y1="7" x2="2.5" y2="7" stroke="currentColor" stroke-width="1"/><line x1="11.5" y1="7" x2="13.5" y2="7" stroke="currentColor" stroke-width="1"/><line x1="2.4" y1="2.4" x2="3.9" y2="3.9" stroke="currentColor" stroke-width="1"/><line x1="10.1" y1="10.1" x2="11.6" y2="11.6" stroke="currentColor" stroke-width="1"/><line x1="11.6" y1="2.4" x2="10.1" y2="3.9" stroke="currentColor" stroke-width="1"/><line x1="3.9" y1="10.1" x2="2.4" y2="11.6" stroke="currentColor" stroke-width="1"/></svg>
+    </button>
     <button class="win-btn" id="btn-min" data-tip="Minimize" aria-label="Minimize">
       <svg width="10" height="1" viewBox="0 0 10 1" fill="none" xmlns="http://www.w3.org/2000/svg">
         <line x1="0" y1="0.5" x2="10" y2="0.5" stroke="currentColor" stroke-width="1"/>
@@ -1154,7 +1199,23 @@ async function init() {
 
   updateApiStatus();
   renderBoard();
+  applyTheme(config.theme || 'dark');
   if (!config.apiKey) setTimeout(openApiModal, 600);
+}
+
+function applyTheme(theme) {
+  var isLight = theme === 'light';
+  document.body.classList.toggle('light', isLight);
+  document.getElementById('icon-theme-dark').style.display = isLight ? 'block' : 'none';
+  document.getElementById('icon-theme-light').style.display = isLight ? 'none' : 'block';
+  document.getElementById('btn-theme').setAttribute('data-tip', isLight ? 'Switch to dark mode' : 'Switch to light mode');
+}
+
+async function toggleTheme() {
+  var current = config.theme || 'dark';
+  config.theme = current === 'dark' ? 'light' : 'dark';
+  applyTheme(config.theme);
+  await window.flowboard.saveConfig(config);
 }
 
 /* ── Tooltip engine ── */
@@ -1232,17 +1293,22 @@ document.getElementById('tag-new-input').addEventListener('keydown', function(e)
   if (e.key === 'Enter') addNewTag();
 });
 document.getElementById('suggest-btn').addEventListener('click', suggestTags);
+document.getElementById('btn-theme').addEventListener('click', toggleTheme);
 document.getElementById('btn-min').addEventListener('click', function(){ window.flowboard.minimize(); });
 document.getElementById('btn-max').addEventListener('click', function(){
   window.flowboard.maximize();
 });
 /* Update maximize/restore icon based on window state */
-window.flowboard.onMaximizeChange && window.flowboard.onMaximizeChange(function(isMax) {
-  document.getElementById('icon-max').style.display = isMax ? 'none' : 'block';
-  document.getElementById('icon-restore').style.display = isMax ? 'block' : 'none';
-  document.getElementById('btn-max').setAttribute('data-tip', isMax ? 'Restore' : 'Maximize');
-  document.getElementById('btn-max').setAttribute('aria-label', isMax ? 'Restore' : 'Maximize');
-});
+try {
+  if (window.flowboard && window.flowboard.onMaximizeChange) {
+    window.flowboard.onMaximizeChange(function(isMax) {
+      document.getElementById('icon-max').style.display = isMax ? 'none' : 'block';
+      document.getElementById('icon-restore').style.display = isMax ? 'block' : 'none';
+      document.getElementById('btn-max').setAttribute('data-tip', isMax ? 'Restore' : 'Maximize');
+      document.getElementById('btn-max').setAttribute('aria-label', isMax ? 'Restore' : 'Maximize');
+    });
+  }
+} catch(e) { /* maximize state tracking unavailable */ }
 document.getElementById('btn-close').addEventListener('click', function(){ window.flowboard.close(); });
 
 init();
