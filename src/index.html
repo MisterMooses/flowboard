@@ -68,6 +68,13 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 #btn-update.visible { animation:update-pulse 2s ease-out 1s 3; }
 body.light #btn-update { color:#059669; }
 body.light #btn-update:hover { background:rgba(5,150,105,0.10); color:#047857; }
+/* Download progress state */
+#btn-update.downloading { cursor:default; animation:none; }
+#btn-update-progress {
+  position:absolute; bottom:0; left:0; height:2px;
+  background:#10B981; width:0%; transition:width 0.3s ease-out;
+  border-radius:0 1px 1px 0;
+}
 
 /* LAYOUT */
 #layout { display:flex; flex:1; overflow:hidden; }
@@ -607,13 +614,12 @@ body.launching.reveal #cmd-zone {
     <div id="app-version" style="font-size:10px;color:var(--text-dim);letter-spacing:0.04em;user-select:none;"></div>
   </div>
   <div id="titlebar-right">
-    <button id="btn-update" aria-label="Update available" data-tip="Update available — click to download">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Download arrow -->
+    <button id="btn-update" aria-label="Update available" data-tip="Update available — click to install">
+      <svg id="btn-update-icon" width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M7.5 1v9M7.5 10l-3.5-3.5M7.5 10l3.5-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- Tray base -->
         <path d="M2 12h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
       </svg>
+      <div id="btn-update-progress"></div>
     </button>
     <button class="win-btn" id="btn-theme" data-tip="Toggle light/dark mode" aria-label="Toggle theme" style="width:40px">
       <svg id="icon-theme-dark" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 9.5A6.5 6.5 0 0 1 4.5 1 6.5 6.5 0 1 0 13 9.5z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></svg>
@@ -2357,18 +2363,47 @@ if (window.flowboard && window.flowboard.getVersion) {
 }
 
 /* ── Update available notification ── */
-var updateUrl = null;
+var updateInfo = null;
 if (window.flowboard && window.flowboard.onUpdateAvailable) {
   window.flowboard.onUpdateAvailable(function(info) {
-    updateUrl = info.url;
+    updateInfo = info;
     var btn = document.getElementById('btn-update');
     btn.classList.add('visible');
-    btn.setAttribute('data-tip', 'Update ' + info.version + ' available — click to download');
+    var tip = info.downloadUrl
+      ? 'Update ' + info.version + ' available — click to download and install'
+      : 'Update ' + info.version + ' available — click to open release page';
+    btn.setAttribute('data-tip', tip);
   });
 }
+
+if (window.flowboard && window.flowboard.onDownloadProgress) {
+  window.flowboard.onDownloadProgress(function(info) {
+    var bar = document.getElementById('btn-update-progress');
+    if (bar) bar.style.width = info.percent + '%';
+    var btn = document.getElementById('btn-update');
+    if (btn) btn.setAttribute('data-tip', 'Downloading... ' + info.percent + '%');
+  });
+}
+
 document.getElementById('btn-update').addEventListener('click', function() {
-  if (updateUrl && window.flowboard && window.flowboard.openExternal) {
-    window.flowboard.openExternal(updateUrl);
+  if (!updateInfo) return;
+  var btn = document.getElementById('btn-update');
+  if (btn.classList.contains('downloading')) return; /* already downloading */
+
+  if (updateInfo.downloadUrl && window.flowboard && window.flowboard.downloadUpdate) {
+    btn.classList.add('downloading');
+    btn.setAttribute('data-tip', 'Downloading... 0%');
+    window.flowboard.downloadUpdate({
+      downloadUrl: updateInfo.downloadUrl,
+      version: updateInfo.version,
+    }).catch(function() {
+      /* If download fails, fall back to opening the release page */
+      btn.classList.remove('downloading');
+      btn.setAttribute('data-tip', 'Download failed — click to open release page');
+      if (window.flowboard.openExternal) window.flowboard.openExternal(updateInfo.url);
+    });
+  } else if (window.flowboard && window.flowboard.openExternal) {
+    window.flowboard.openExternal(updateInfo.url);
   }
 });
 document.getElementById('weekly-copy-btn').addEventListener('click', function() {

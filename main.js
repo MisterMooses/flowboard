@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain, nativeImage, shell } = require('electron');
 const path = require('path');
 const fs   = require('fs');
 const https = require('https');
+const os   = require('os');
+const { exec } = require('child_process');
 
 // ── Paths ─────────────────────────────────────────────────────────────────────
 const USER_DATA_DIR = app.getPath('userData');
@@ -13,6 +15,13 @@ const PKG         = require('./package.json');
 const APP_VERSION = PKG.version;                      // e.g. "1.1.0"
 const GH_OWNER    = PKG.updater?.githubOwner || '';   // set in package.json
 const GH_REPO     = PKG.updater?.githubRepo  || '';
+
+// ── Secrets (gitignored) ──────────────────────────────────────────────────────
+let GH_TOKEN = '';
+try {
+  const secrets = require('./secrets.json');
+  GH_TOKEN = secrets.githubToken || '';
+} catch { /* secrets.json not present — unauthenticated requests only */ }
 
 // ── Config / data helpers ─────────────────────────────────────────────────────
 function loadConfig() {
@@ -57,6 +66,7 @@ function checkForUpdates(win) {
     headers: {
       'User-Agent': `Flowboard/${APP_VERSION}`,
       'Accept': 'application/vnd.github+json',
+      ...(GH_TOKEN ? { 'Authorization': `token ${GH_TOKEN}` } : {}),
     },
   };
 
@@ -66,15 +76,21 @@ function checkForUpdates(win) {
     res.on('end', () => {
       try {
         const release = JSON.parse(data);
-        const tag = release.tag_name;           // e.g. "v1.2.0"
-        const url = release.html_url;           // releases page URL
-        if (tag && isNewer(tag, APP_VERSION)) {
-          // Notify renderer — it will show the update button
-          win.webContents.send('update-available', { version: tag, url });
-        }
-      } catch { /* silently ignore parse errors */ }
+        const tag = release.tag_name;
+        const pageUrl = release.html_url;
+        if (!tag || !isNewer(tag, APP_VERSION)) return;
+        // Find the .exe installer asset
+        const assets = release.assets || [];
+        const exeAsset = assets.find(a => a.name.endsWith('.exe'));
+        win.webContents.send('update-available', {
+          version: tag,
+          url: pageUrl,
+          downloadUrl: exeAsset ? exeAsset.browser_download_url : null,
+          fileSize: exeAsset ? exeAsset.size : null,
+        });
+      } catch (e) { /* silently ignore */ }
     });
-  }).on('error', () => { /* silently ignore network errors */ });
+  }).on('error', () => { /* silently ignore */ });
 }
 
 // ── Window ────────────────────────────────────────────────────────────────────
@@ -137,6 +153,53 @@ ipcMain.handle('set-theme-icon', (_, theme) => {
 ipcMain.handle('open-external', (_, url) => {
   shell.openExternal(url);
   return true;
+});
+
+// Download installer and launch it
+ipcMain.handle('download-update', (_, { downloadUrl, version }) => {
+  return new Promise((resolve, reject) => {
+    const fileName = `Flowboard-Setup-${version}.exe`;
+    const destPath = path.join(os.tmpdir(), fileName);
+
+    const file = fs.createWriteStream(destPath);
+    let received = 0;
+
+    function doGet(url) {
+      https.get(url, { headers: { 'User-Agent': `Flowboard/${APP_VERSION}` } }, (res) => {
+        // Follow redirects (GitHub asset URLs redirect to S3)
+        if (res.statusCode === 302 || res.statusCode === 301) {
+          file.close();
+          return doGet(res.headers.location);
+        }
+        const total = parseInt(res.headers['content-length'] || '0', 10);
+        res.on('data', (chunk) => {
+          received += chunk.length;
+          file.write(chunk);
+          if (total > 0) {
+            mainWindow.webContents.send('download-progress', {
+              percent: Math.round(received / total * 100),
+              received,
+              total,
+            });
+          }
+        });
+        res.on('end', () => {
+          file.end();
+          file.on('finish', () => {
+            // Launch installer then quit — NSIS will handle the rest
+            exec(`"${destPath}"`, (err) => {
+              if (err) return reject(err);
+            });
+            setTimeout(() => app.quit(), 1500);
+            resolve({ success: true, path: destPath });
+          });
+        });
+        res.on('error', reject);
+      }).on('error', reject);
+    }
+
+    doGet(downloadUrl);
+  });
 });
 
 // Expose current version to renderer
