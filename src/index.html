@@ -118,16 +118,34 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 .card-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:7px; }
 .tag { font-size:10px; font-weight:600; padding:2px 6px; border-radius:4px; letter-spacing:0.04em; text-transform:uppercase; cursor:pointer; transition:opacity 0.12s; }
 .tag:hover { opacity:0.75; }
-.card-meta { display:flex; align-items:center; gap:6px; margin-top:6px; flex-wrap:wrap; }
+.card-meta { display:flex; align-items:center; justify-content:space-between; margin-top:7px; }
+.card-meta-left { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
 .card-due { font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:3px; }
 .card-due.overdue { color:#F87171; }
 .card-due.soon { color:#F59E0B; }
-.card-actions { display:flex; gap:4px; margin-top:8px; padding-top:7px; border-top:0.5px solid var(--border); }
+/* Notes icon button — sits in meta row, right side */
+.card-btn-notes {
+  background:none; border:none; cursor:pointer; padding:3px 5px;
+  border-radius:4px; color:var(--text-dim); font-size:14px;
+  display:flex; align-items:center; gap:3px;
+  transition:color 0.12s, background 0.12s; flex-shrink:0;
+}
+.card-btn-notes:hover { color:var(--accent); background:var(--accent-dim); }
+.card-btn-notes.has-notes { color:var(--accent); }
+.card-actions { display:flex; align-items:center; gap:4px; margin-top:7px; padding-top:7px; border-top:0.5px solid var(--border); }
 .card-btn { background:var(--surface3); border:0.5px solid var(--border2); color:var(--text-muted); cursor:pointer; padding:4px 8px; border-radius:5px; font-size:12px; display:flex; align-items:center; gap:4px; transition:color 0.12s,background 0.12s,border-color 0.12s; font-family:inherit; }
-.card-btn:hover { color:var(--text); background:#363b58; }
-.card-btn.del:hover { color:#F87171; border-color:rgba(248,113,113,0.3); }
+.card-btn:hover { color:var(--text); background:var(--surface3); }
+body.light .card-btn:hover { background:#d8ddef; }
 .card-btn.hold-active { color:#F59E0B; border-color:rgba(245,158,11,0.35); background:rgba(245,158,11,0.08); }
 .card-btn-label { font-size:10.5px; font-weight:500; }
+/* Delete — icon only, right-justified, red on hover */
+.card-btn-del {
+  background:none; border:none; cursor:pointer; padding:3px 6px;
+  border-radius:4px; color:var(--text-dim); font-size:14px;
+  display:flex; align-items:center; margin-left:auto;
+  transition:color 0.12s, background 0.12s;
+}
+.card-btn-del:hover { color:#F87171; background:rgba(248,113,113,0.1); }
 
 /* PRIORITY BADGE */
 .priority-row { display:flex; align-items:center; gap:6px; margin-top:6px; }
@@ -838,15 +856,21 @@ function renderCard(t) {
     tagsHtml += '</div>';
   }
 
-  /* Meta row — due date + on hold badge */
-  var metaHtml = '';
-  if (t.onHold) metaHtml += '<span class="hold-badge"><i class="ti ti-player-pause" style="font-size:10px"></i>on hold</span>';
-  if (due) metaHtml += '<div class="card-due ' + due.cls + '"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</div>';
-  var metaRow = metaHtml ? '<div class="card-meta">' + metaHtml + '</div>' : '';
-
+  /* Meta row: hold badge + due date (left) | notes button (right) */
   var noteCount = (t.notes || []).length;
-  var noteDot = noteCount ? '<span class="notes-dot" aria-hidden="true"></span>' : '';
   var noteTip = noteCount ? 'Notes (' + noteCount + ')' : 'Add notes';
+  var noteDot = noteCount ? '<span class="notes-dot" aria-hidden="true"></span>' : '';
+  var notesBtnCls = 'card-btn-notes' + (noteCount ? ' has-notes' : '');
+
+  var metaLeft = '';
+  if (t.onHold) metaLeft += '<span class="hold-badge"><i class="ti ti-player-pause" style="font-size:10px"></i>on hold</span>';
+  if (due) metaLeft += '<div class="card-due ' + due.cls + '"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</div>';
+
+  var metaRow = '<div class="card-meta">'
+    + '<div class="card-meta-left">' + metaLeft + '</div>'
+    + '<button class="' + notesBtnCls + '" onclick="openNotes(event,\'' + t.id + '\')" data-tip="' + noteTip + '">'
+    + '<i class="ti ti-file-text"></i>' + noteDot + '</button>'
+    + '</div>';
 
   return '<div class="card' + holdCls + doneCls + '" data-id="' + escHtml(t.id) + '" draggable="true">'
     + '<div class="card-bar" style="background:' + bar + '"></div>'
@@ -859,10 +883,8 @@ function renderCard(t) {
     + '<i class="ti ti-circle-check"></i><span class="card-btn-label">' + completeLabel + '</span></button>'
     + '<button class="card-btn' + holdActiveCls + '" onclick="toggleHold(\'' + t.id + '\')" data-tip="' + holdTip + '">'
     + '<i class="ti ti-player-pause"></i><span class="card-btn-label">' + holdLabel + '</span></button>'
-    + '<button class="card-btn notes-btn' + (noteCount ? ' has-notes' : '') + '" onclick="openNotes(event,\'' + t.id + '\')" data-tip="' + noteTip + '">'
-    + '<i class="ti ti-notes"></i>' + noteDot + '</button>'
-    + '<button class="card-btn del" onclick="deleteTask(\'' + t.id + '\')" data-tip="Delete this task">'
-    + '<i class="ti ti-trash"></i><span class="card-btn-label">Delete</span></button>'
+    + '<button class="card-btn-del" onclick="deleteTask(\'' + t.id + '\')" data-tip="Delete this task">'
+    + '<i class="ti ti-trash"></i></button>'
     + '</div></div>';
 }
 
