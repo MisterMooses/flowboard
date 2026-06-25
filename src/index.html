@@ -981,8 +981,23 @@ function renderChildCard(t) {
     + '</div>';
 }
 
+function sortChildrenByDue(children) {
+  return children.slice().sort(function(a, b) {
+    /* Done tasks sink to the bottom */
+    var aDone = a.column === 'done' ? 1 : 0;
+    var bDone = b.column === 'done' ? 1 : 0;
+    if (aDone !== bDone) return aDone - bDone;
+    /* No due date sinks below dated tasks */
+    if (!a.due && !b.due) return 0;
+    if (!a.due) return 1;
+    if (!b.due) return -1;
+    /* Ascending date — earliest due first */
+    return a.due < b.due ? -1 : a.due > b.due ? 1 : 0;
+  });
+}
+
 function renderStack(parent) {
-  var children = getChildren(parent.id);
+  var children = sortChildrenByDue(getChildren(parent.id));
   var isExp = !!stackExpanded[parent.id];
   return '<div class="stack-wrapper">'
     + renderCard(parent)
