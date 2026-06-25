@@ -210,16 +210,27 @@ body {
 .card-due { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
 .card-due.overdue { color: #F87171; }
 .card-due.soon { color: #F59E0B; }
-.card-actions { margin-left: auto; display: flex; gap: 2px; opacity: 0; transition: opacity 0.15s; }
-.card:hover .card-actions { opacity: 1; }
+.card-actions { margin-left: auto; display: flex; gap: 2px; }
 .card-btn {
-  background: none; border: none; color: var(--text-dim); cursor: pointer;
-  padding: 2px 4px; border-radius: 3px; font-size: 13px;
+  background: none; border: none; color: #3d4561; cursor: pointer;
+  padding: 3px 5px; border-radius: 4px; font-size: 13px;
   transition: color 0.12s, background 0.12s;
 }
-.card-btn:hover { color: var(--text); background: var(--surface3); }
-.card-btn.del:hover { color: #F87171; }
-.card-btn.hold-active { color: #F59E0B; }
+.card:hover .card-btn { color: var(--text-muted); }
+.card-btn:hover { color: var(--text) !important; background: var(--surface3); }
+.card-btn.del:hover { color: #F87171 !important; }
+.card-btn.hold-active { color: #F59E0B !important; }
+
+/* TOOLTIP */
+.fb-tooltip {
+  position: fixed; z-index: 9999; pointer-events: none;
+  background: #0a0c13; border: 0.5px solid var(--border2);
+  color: var(--text); font-size: 11px; font-family: 'Inter', sans-serif;
+  padding: 4px 9px; border-radius: 5px; white-space: nowrap;
+  opacity: 0; transition: opacity 0.12s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.fb-tooltip.visible { opacity: 1; }
 
 .empty-col { padding: 24px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .empty-col i { font-size: 20px; color: var(--border2); }
@@ -301,9 +312,9 @@ body {
   </div>
   <div id="titlebar-center">Personal Kanban</div>
   <div id="titlebar-right">
-    <button class="win-btn" id="btn-min" title="Minimize"><i class="ti ti-minus"></i></button>
-    <button class="win-btn" id="btn-max" title="Maximize"><i class="ti ti-square"></i></button>
-    <button class="win-btn" id="btn-close" title="Close"><i class="ti ti-x"></i></button>
+    <button class="win-btn" id="btn-min" data-tip="Minimize"><i class="ti ti-minus"></i></button>
+    <button class="win-btn" id="btn-max" data-tip="Maximize"><i class="ti ti-square"></i></button>
+    <button class="win-btn" id="btn-close" data-tip="Close"><i class="ti ti-x"></i></button>
   </div>
 </div>
 
@@ -344,7 +355,7 @@ body {
     </div>
 
     <div id="sidebar-bottom">
-      <button id="settings-btn"><i class="ti ti-key" style="font-size:15px"></i>API Settings</button>
+      <button id="settings-btn" data-tip="API Settings"><i class="ti ti-key" style="font-size:15px"></i>API Settings</button>
       <div id="api-status"></div>
     </div>
   </div>
@@ -496,7 +507,7 @@ function renderCard(t) {
   const due = formatDue(t.due);
   const bar = PRIORITY_COLORS[t.priority] || '#64748B';
   const holdCls = t.onHold ? ' on-hold' : '';
-  const holdBtn = `<button class="card-btn ${t.onHold?'hold-active':''}" onclick="toggleHold('${t.id}')" title="${t.onHold?'Resume':'Put on hold'}"><i class="ti ti-player-pause"></i></button>`;
+  const holdBtn = `<button class="card-btn ${t.onHold?'hold-active':''}" onclick="toggleHold('${t.id}')" data-tip="${t.onHold?'Resume task':'Put on hold'}"><i class="ti ti-player-pause"></i></button>`;
   return `<div class="card${holdCls}" data-id="${t.id}" draggable="true">
     <div class="card-bar" style="background:${bar}"></div>
     <div class="card-title">${escHtml(t.title)}</div>
@@ -506,7 +517,7 @@ function renderCard(t) {
       ${due ? `<div class="card-due ${due.cls}"><i class="ti ti-calendar" style="font-size:11px"></i>${due.label}</div>` : ''}
       <div class="card-actions">
         ${holdBtn}
-        <button class="card-btn del" onclick="deleteTask('${t.id}')" title="Delete"><i class="ti ti-trash"></i></button>
+        <button class="card-btn del" onclick="deleteTask('${t.id}')" data-tip="Delete task"><i class="ti ti-trash"></i></button>
       </div>
     </div>
   </div>`;
@@ -680,6 +691,49 @@ document.getElementById('modal-save').addEventListener('click', async () => {
 document.getElementById('btn-min').addEventListener('click', () => window.flowboard.minimize());
 document.getElementById('btn-max').addEventListener('click', () => window.flowboard.maximize());
 document.getElementById('btn-close').addEventListener('click', () => window.flowboard.close());
+
+/* ── tooltip engine ── */
+const tip = document.createElement('div');
+tip.className = 'fb-tooltip';
+document.body.appendChild(tip);
+let tipTimer;
+
+document.addEventListener('mouseover', e => {
+  const el = e.target.closest('[data-tip]');
+  if (!el) return;
+  clearTimeout(tipTimer);
+  tipTimer = setTimeout(() => {
+    tip.textContent = el.dataset.tip;
+    tip.classList.add('visible');
+    positionTip(e);
+  }, 320);
+});
+document.addEventListener('mousemove', e => {
+  if (tip.classList.contains('visible')) positionTip(e);
+});
+document.addEventListener('mouseout', e => {
+  const el = e.target.closest('[data-tip]');
+  if (!el) return;
+  clearTimeout(tipTimer);
+  tip.classList.remove('visible');
+});
+document.addEventListener('click', () => {
+  clearTimeout(tipTimer);
+  tip.classList.remove('visible');
+});
+
+function positionTip(e) {
+  const pad = 12;
+  let x = e.clientX + pad;
+  let y = e.clientY - 30;
+  const tw = tip.offsetWidth;
+  const th = tip.offsetHeight;
+  if (x + tw > window.innerWidth - 8) x = e.clientX - tw - pad;
+  if (y < 4) y = e.clientY + pad;
+  if (y + th > window.innerHeight - 4) y = window.innerHeight - th - 4;
+  tip.style.left = x + 'px';
+  tip.style.top  = y + 'px';
+}
 
 init();
 </script>
