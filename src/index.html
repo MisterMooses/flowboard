@@ -98,6 +98,15 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 .card.on-hold .card-title { color:var(--text-muted); }
 .card.on-hold .card-bar { opacity:0.4; }
 .hold-badge { display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#64748B; background:#1e2433; border:0.5px solid #334155; padding:2px 7px; border-radius:4px; }
+.card.done { background:#0d1f18; border:1px solid rgba(16,185,129,0.45); }
+.card.done .card-title { color:#6ee7b7; opacity:0.75; }
+.card.done .card-bar { opacity:0.35; }
+.card.done .priority-row { opacity:0.45; }
+.card.done .card-tags { opacity:0.45; }
+.card.done .card-meta { opacity:0.5; }
+.card.done:hover { border-color:rgba(16,185,129,0.7); transform:translateY(-1px); }
+.card-btn.complete:hover { color:#10B981; border-color:rgba(16,185,129,0.4); background:rgba(16,185,129,0.08); }
+.card-btn.complete-active { color:#10B981; border-color:rgba(16,185,129,0.4); background:rgba(16,185,129,0.08); }
 .card-bar { position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; }
 .card-title { font-size:12.5px; font-weight:500; color:var(--text); line-height:1.45; }
 .card-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:7px; }
@@ -555,10 +564,15 @@ var PRIORITY_BADGE = {
 function renderCard(t) {
   var due = formatDue(t.due);
   var bar = PRIORITY_COLORS[t.priority] || '#64748B';
+  var isDone = t.column === 'done';
+  var doneCls = isDone ? ' done' : '';
   var holdCls = t.onHold ? ' on-hold' : '';
   var holdLabel = t.onHold ? 'Resume' : 'Hold';
   var holdTip = t.onHold ? 'Resume this task' : 'Put task on hold';
   var holdActiveCls = t.onHold ? ' hold-active' : '';
+  var completeCls = isDone ? ' complete-active' : ' complete';
+  var completeLabel = isDone ? 'Completed' : 'Complete';
+  var completeTip = isDone ? 'Move back to In Progress' : 'Mark as complete';
 
   /* Priority badge — always shown */
   var pb = PRIORITY_BADGE[t.priority] || PRIORITY_BADGE.low;
@@ -584,13 +598,15 @@ function renderCard(t) {
   if (due) metaHtml += '<div class="card-due ' + due.cls + '"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</div>';
   var metaRow = metaHtml ? '<div class="card-meta">' + metaHtml + '</div>' : '';
 
-  return '<div class="card' + holdCls + '" data-id="' + escHtml(t.id) + '" draggable="true">'
+  return '<div class="card' + holdCls + doneCls + '" data-id="' + escHtml(t.id) + '" draggable="true">'
     + '<div class="card-bar" style="background:' + bar + '"></div>'
     + '<div class="card-title">' + escHtml(t.title) + '</div>'
     + priorityHtml
     + tagsHtml
     + metaRow
     + '<div class="card-actions">'
+    + '<button class="card-btn' + completeCls + '" onclick="completeTask(\'' + t.id + '\')" data-tip="' + completeTip + '">'
+    + '<i class="ti ti-circle-check"></i><span class="card-btn-label">' + completeLabel + '</span></button>'
     + '<button class="card-btn' + holdActiveCls + '" onclick="toggleHold(\'' + t.id + '\')" data-tip="' + holdTip + '">'
     + '<i class="ti ti-player-pause"></i><span class="card-btn-label">' + holdLabel + '</span></button>'
     + '<button class="card-btn del" onclick="deleteTask(\'' + t.id + '\')" data-tip="Delete this task">'
@@ -696,6 +712,15 @@ window.toggleHold = async function(id) {
   var task = tasks.find(function(t){ return t.id === id; });
   if (!task) return;
   task.onHold = !task.onHold;
+  await window.flowboard.saveTasks(tasks);
+  renderBoard();
+};
+
+window.completeTask = async function(id) {
+  var task = tasks.find(function(t){ return t.id === id; });
+  if (!task) return;
+  task.column = task.column === 'done' ? 'progress' : 'done';
+  task.onHold = false;
   await window.flowboard.saveTasks(tasks);
   renderBoard();
 };
