@@ -32,8 +32,7 @@ function saveTasks(tasks) {
 
 // ── Icon helpers ──────────────────────────────────────────────────────────────
 function iconPath(theme) {
-  const file = (theme === 'dark') ? 'icon-dark.ico' : 'icon-light.ico';
-  return path.join(__dirname, 'assets', file);
+  return path.join(__dirname, 'assets', 'icon.ico');
 }
 
 // ── Semver comparison ─────────────────────────────────────────────────────────
