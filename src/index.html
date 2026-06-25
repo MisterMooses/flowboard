@@ -187,6 +187,42 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 #suggest-btn:disabled { opacity:0.5; cursor:default; }
 #suggestions-area { min-height:20px; }
 
+
+/* COLLAPSIBLE SIDEBAR SECTIONS */
+.sidebar-section-header {
+  display:flex; align-items:center; justify-content:space-between;
+  cursor:pointer; padding:0 4px; margin-bottom:8px; user-select:none;
+}
+.sidebar-section-header:hover .sidebar-label { color:var(--text-muted); }
+.sidebar-chevron { color:var(--text-dim); font-size:13px; transition:transform 0.2s; flex-shrink:0; }
+.sidebar-section.collapsed .sidebar-chevron { transform:rotate(-90deg); }
+.sidebar-collapsible { overflow:hidden; max-height:400px; transition:max-height 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.2s; opacity:1; }
+.sidebar-section.collapsed .sidebar-collapsible { max-height:0; opacity:0; }
+
+/* CLICKABLE COLUMN STATS */
+.sidebar-stat { display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:var(--radius-sm); margin-bottom:2px; cursor:pointer; transition:background 0.12s; }
+.sidebar-stat:hover { background:var(--surface2); }
+.sidebar-stat.col-focused { background:var(--accent-dim); }
+.sidebar-stat.col-focused .sidebar-stat-label { color:var(--accent); }
+.sidebar-stat.col-focused .sidebar-count { color:var(--accent); }
+.col-focus-hint { font-size:10px; color:var(--text-dim); padding:2px 8px 6px; }
+
+/* COLUMN FOCUS MODE */
+.column { transition:opacity 0.22s ease, transform 0.22s ease, border-color 0.15s; }
+.column.col-hiding { opacity:0; transform:scale(0.96); pointer-events:none; }
+.column.col-hidden { display:none; }
+.column.col-expanded { grid-column:1 / -1; }
+.column.col-expanded .col-body {
+  display:grid !important;
+  grid-template-columns:repeat(auto-fill, minmax(260px,1fr));
+  gap:8px;
+  align-items:start;
+}
+.col-expanded-badge {
+  font-size:11px; color:var(--accent); margin-left:6px;
+  background:var(--accent-dim); padding:1px 8px; border-radius:20px;
+}
+
 /* TOOLTIP */
 .fb-tooltip { position:fixed; z-index:9999; pointer-events:none; background:#0a0c13; border:0.5px solid var(--border2); color:var(--text); font-size:11px; font-family:'Inter',sans-serif; padding:4px 9px; border-radius:5px; white-space:nowrap; opacity:0; transition:opacity 0.12s; }
 .fb-tooltip.visible { opacity:1; }
@@ -211,42 +247,53 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 <div id="layout">
   <div id="sidebar">
     <div class="sidebar-section">
-      <div class="sidebar-label">Columns</div>
-      <div class="sidebar-stat">
+      <div class="sidebar-label" style="padding:0 4px;margin-bottom:8px;">Columns</div>
+      <div class="sidebar-stat" data-focus-col="backlog" data-tip="Expand Backlog column" onclick="focusColumn('backlog')">
         <div class="sidebar-stat-label"><div class="sidebar-dot" style="background:#64748B"></div>Backlog</div>
         <div class="sidebar-count" id="stat-backlog">0</div>
       </div>
-      <div class="sidebar-stat">
+      <div class="sidebar-stat" data-focus-col="next" data-tip="Expand Up Next column" onclick="focusColumn('next')">
         <div class="sidebar-stat-label"><div class="sidebar-dot" style="background:#F59E0B"></div>Up Next</div>
         <div class="sidebar-count" id="stat-next">0</div>
       </div>
-      <div class="sidebar-stat">
+      <div class="sidebar-stat" data-focus-col="progress" data-tip="Expand In Progress column" onclick="focusColumn('progress')">
         <div class="sidebar-stat-label"><div class="sidebar-dot" style="background:#6C63FF"></div>In Progress</div>
         <div class="sidebar-count" id="stat-progress">0</div>
       </div>
-      <div class="sidebar-stat">
+      <div class="sidebar-stat" data-focus-col="done" data-tip="Expand Done column" onclick="focusColumn('done')">
         <div class="sidebar-stat-label"><div class="sidebar-dot" style="background:#10B981"></div>Done</div>
         <div class="sidebar-count" id="stat-done">0</div>
       </div>
-      <div class="sidebar-stat">
+      <div class="sidebar-stat" style="cursor:default;" data-tip="Tasks currently on hold">
         <div class="sidebar-stat-label"><div class="sidebar-dot" style="background:#334155"></div>On Hold</div>
         <div class="sidebar-count" id="stat-hold">0</div>
       </div>
+      <div class="col-focus-hint" id="col-focus-hint" style="display:none;">Click column name to collapse</div>
     </div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-label">Filter by Priority</div>
-      <button class="sidebar-filter active" data-filter="all"><i class="ti ti-layout-list"></i>All tasks</button>
-      <button class="sidebar-filter" data-filter="critical"><i class="ti ti-flame" style="color:#EF4444"></i>Critical</button>
-      <button class="sidebar-filter" data-filter="high"><i class="ti ti-arrow-up" style="color:#6C63FF"></i>High</button>
-      <button class="sidebar-filter" data-filter="medium"><i class="ti ti-minus" style="color:#F59E0B"></i>Medium</button>
-      <button class="sidebar-filter" data-filter="low"><i class="ti ti-arrow-down" style="color:#64748B"></i>Low</button>
-      <button class="sidebar-filter" data-filter="hold"><i class="ti ti-player-pause" style="color:#64748B"></i>On Hold</button>
+    <div class="sidebar-section" id="section-priority">
+      <div class="sidebar-section-header" onclick="toggleSection('section-priority')" data-tip="Collapse/expand">
+        <div class="sidebar-label" style="margin:0">Filter by Priority</div>
+        <i class="ti ti-chevron-down sidebar-chevron"></i>
+      </div>
+      <div class="sidebar-collapsible">
+        <button class="sidebar-filter active" data-filter="all"><i class="ti ti-layout-list"></i>All tasks</button>
+        <button class="sidebar-filter" data-filter="critical"><i class="ti ti-flame" style="color:#EF4444"></i>Critical</button>
+        <button class="sidebar-filter" data-filter="high"><i class="ti ti-arrow-up" style="color:#6C63FF"></i>High</button>
+        <button class="sidebar-filter" data-filter="medium"><i class="ti ti-minus" style="color:#F59E0B"></i>Medium</button>
+        <button class="sidebar-filter" data-filter="low"><i class="ti ti-arrow-down" style="color:#64748B"></i>Low</button>
+        <button class="sidebar-filter" data-filter="hold"><i class="ti ti-player-pause" style="color:#64748B"></i>On Hold</button>
+      </div>
     </div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-label">Filter by Tag</div>
-      <div id="sidebar-tags"></div>
+    <div class="sidebar-section" id="section-tags">
+      <div class="sidebar-section-header" onclick="toggleSection('section-tags')" data-tip="Collapse/expand">
+        <div class="sidebar-label" style="margin:0">Filter by Tag</div>
+        <i class="ti ti-chevron-down sidebar-chevron"></i>
+      </div>
+      <div class="sidebar-collapsible">
+        <div id="sidebar-tags"></div>
+      </div>
     </div>
 
     <div id="sidebar-bottom">
@@ -854,6 +901,83 @@ window.addSuggestedTag = async function(name) {
   /* refresh just the in-use and unused sections */
   renderTagLists();
 };
+
+/* ── Collapsible sidebar sections ── */
+function toggleSection(id) {
+  var section = document.getElementById(id);
+  section.classList.toggle('collapsed');
+}
+
+/* ── Column focus mode ── */
+var focusedCol = null;
+var FOCUS_ANIM_MS = 220;
+
+function focusColumn(col) {
+  if (focusedCol === col) {
+    /* collapse back to normal */
+    unfocusColumn();
+    return;
+  }
+  focusedCol = col;
+
+  var allCols = ['backlog','next','progress','done'];
+
+  /* Step 1: fade out the columns that will hide */
+  allCols.forEach(function(c) {
+    var el = document.getElementById('col-' + c);
+    if (c !== col) {
+      el.classList.add('col-hiding');
+    }
+  });
+
+  /* Step 2: after fade, hide them and expand the target */
+  setTimeout(function() {
+    allCols.forEach(function(c) {
+      var el = document.getElementById('col-' + c);
+      if (c !== col) {
+        el.classList.add('col-hidden');
+        el.classList.remove('col-hiding');
+      } else {
+        el.classList.add('col-expanded');
+      }
+    });
+
+    /* update sidebar stats highlight */
+    document.querySelectorAll('.sidebar-stat[data-focus-col]').forEach(function(s) {
+      s.classList.toggle('col-focused', s.dataset.focusCol === col);
+    });
+    var hint = document.getElementById('col-focus-hint');
+    if (hint) hint.style.display = 'block';
+  }, FOCUS_ANIM_MS);
+}
+
+function unfocusColumn() {
+  var allCols = ['backlog','next','progress','done'];
+  focusedCol = null;
+
+  /* reveal hidden columns at 0 opacity first, then fade in */
+  allCols.forEach(function(c) {
+    var el = document.getElementById('col-' + c);
+    el.classList.remove('col-expanded');
+    el.classList.remove('col-hidden');
+    el.classList.add('col-hiding'); /* start invisible */
+  });
+
+  /* next frame: remove hiding so transition plays in */
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      allCols.forEach(function(c) {
+        document.getElementById('col-' + c).classList.remove('col-hiding');
+      });
+    });
+  });
+
+  document.querySelectorAll('.sidebar-stat[data-focus-col]').forEach(function(s) {
+    s.classList.remove('col-focused');
+  });
+  var hint = document.getElementById('col-focus-hint');
+  if (hint) hint.style.display = 'none';
+}
 
 /* ── Init ── */
 async function init() {
