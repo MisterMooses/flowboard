@@ -4,8 +4,19 @@ const fs = require('fs');
 const http = require('http');
 const https = require('https');
 
-const CONFIG_PATH = path.join(app.getPath('userData'), 'config.json');
-const DATA_PATH = path.join(app.getPath('userData'), 'tasks.json');
+// User data is stored per-account in the OS user data directory.
+// On Windows: C:\Users\<name>\AppData\Roaming\flowboard\
+// On macOS:   ~/Library/Application Support/flowboard/
+// On Linux:   ~/.config/flowboard/
+//
+// config.json  — API key, user tag definitions, UI preferences
+// tasks.json   — all Kanban cards (no user-identifying info beyond task titles)
+//
+// Neither file is ever transmitted anywhere except config.apiKey,
+// which goes only to api.anthropic.com when the user adds a task.
+const USER_DATA_DIR = app.getPath('userData');
+const CONFIG_PATH = path.join(USER_DATA_DIR, 'config.json');
+const DATA_PATH   = path.join(USER_DATA_DIR, 'tasks.json');
 
 function loadConfig() {
   try { return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')); }

@@ -419,30 +419,31 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 
 <script>
 /* ── Default tag palette ── */
+/* Built-in tag styles — generic defaults shipped with the app.
+   User-defined tags are stored in AppData/Roaming/flowboard/config.json
+   and take precedence over these when present. */
 var DEFAULT_TAGS = {
-  projects:          { bg:'#1e2a4a', color:'#60a5fa' },
-  kaseya:            { bg:'#2d1b4e', color:'#c084fc' },
-  ipads:             { bg:'#1a2e2a', color:'#34d399' },
-  documentation:     { bg:'#2e2a1a', color:'#fbbf24' },
-  'warehouse/imaging': { bg:'#1a2e2e', color:'#67e8f9' },
-  operations:        { bg:'#2e241a', color:'#fb923c' },
-  work:              { bg:'#1e3050', color:'#7db8f7' },
-  design:            { bg:'#301b52', color:'#d09cf9' },
-  meeting:           { bg:'#1a3030', color:'#4de8b0' },
-  research:          { bg:'#302c1a', color:'#ffd080' },
-  writing:           { bg:'#301a1a', color:'#ff9090' },
-  planning:          { bg:'#1a3032', color:'#80e8ff' },
-  review:            { bg:'#302618', color:'#ffb080' },
-  email:             { bg:'#1a1a30', color:'#9898ff' },
-  code:              { bg:'#1a2c1a', color:'#60f080' },
-  admin:             { bg:'#282828', color:'#a8b4c4' },
-  personal:          { bg:'#301a30', color:'#f090ff' },
-  finance:           { bg:'#1a3020', color:'#90ffb0' },
-  health:            { bg:'#301818', color:'#ffb0b0' },
-  learning:          { bg:'#1a2820', color:'#80f0c0' },
-  urgent:            { bg:'#3d1818', color:'#ff9090' },
-  other:             { bg:'#222536', color:'#8892A4' }
+  work:     { bg:'#1e3050', color:'#7db8f7' },
+  design:   { bg:'#301b52', color:'#d09cf9' },
+  meeting:  { bg:'#1a3030', color:'#4de8b0' },
+  research: { bg:'#302c1a', color:'#ffd080' },
+  writing:  { bg:'#301a1a', color:'#ff9090' },
+  planning: { bg:'#1a3032', color:'#80e8ff' },
+  review:   { bg:'#302618', color:'#ffb080' },
+  email:    { bg:'#1a1a30', color:'#9898ff' },
+  code:     { bg:'#1a2c1a', color:'#60f080' },
+  admin:    { bg:'#282828', color:'#a8b4c4' },
+  personal: { bg:'#301a30', color:'#f090ff' },
+  finance:  { bg:'#1a3020', color:'#90ffb0' },
+  health:   { bg:'#301818', color:'#ffb0b0' },
+  learning: { bg:'#1a2820', color:'#80f0c0' },
+  urgent:   { bg:'#3d1818', color:'#ff9090' },
+  other:    { bg:'#222536', color:'#8892A4' }
 };
+
+/* Tags that were personal to the original developer — strip from any
+   existing config on load so they don't ship to other users. */
+var LEGACY_PERSONAL_TAGS = ['projects','kaseya','ipads','documentation','warehouse/imaging','operations'];
 
 /* Auto-assign a color from a rotation palette for new custom tags */
 var COLOR_PALETTE = [
@@ -1108,13 +1109,21 @@ function unfocusColumn() {
 async function init() {
   config = await window.flowboard.getConfig();
 
-  /* load saved tag defs, seed defaults for user's known tags */
+  /* Load user tag definitions from their AppData config.
+     New installs start with no pre-seeded tags — the tag library
+     grows only from tags the user actually applies to tasks. */
   tagDefs = config.tags || {};
-  if (!Object.keys(tagDefs).length) {
-    /* first run — seed the user's known tags as defaults */
-    tagDefs = Object.assign({}, DEFAULT_TAGS);
-    await saveTags();
-  }
+
+  /* Migration: remove any legacy personal tags that were previously
+     seeded into config during development. Safe no-op on new installs. */
+  var migrated = false;
+  LEGACY_PERSONAL_TAGS.forEach(function(name) {
+    if (tagDefs.hasOwnProperty(name)) {
+      delete tagDefs[name];
+      migrated = true;
+    }
+  });
+  if (migrated) await saveTags();
 
   var raw = await window.flowboard.getTasks();
   tasks = raw.map(function(t){ if (t.onHold === undefined) t.onHold = false; return t; });
