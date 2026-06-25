@@ -1,6 +1,6 @@
 {
   "name": "flowboard",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Personal AI-powered Kanban board",
   "author": {
     "name": "Flowboard",
@@ -14,5 +14,9 @@
   "devDependencies": {
     "electron": "^31.0.0",
     "electron-builder": "^24.0.0"
+  },
+  "updater": {
+    "githubOwner": "MisterMooses",
+    "githubRepo": "flowboard"
   }
 }

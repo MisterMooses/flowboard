@@ -48,6 +48,27 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 #btn-close:active { background:#b52516; }
 .win-btn svg { display:block; pointer-events:none; }
 
+/* Update available button */
+#btn-update {
+  display:none; align-items:center; justify-content:center;
+  width:40px; height:100%; border:none; cursor:pointer;
+  background:none; color:#10B981; position:relative;
+  transition:background 0.1s, color 0.1s; flex-shrink:0;
+  -webkit-app-region:no-drag;
+}
+#btn-update.visible { display:flex; }
+#btn-update:hover { background:rgba(16,185,129,0.12); color:#34D399; }
+#btn-update svg { display:block; pointer-events:none; }
+/* Subtle pulse ring to draw attention */
+@keyframes update-pulse {
+  0%   { box-shadow:0 0 0 0 rgba(16,185,129,0.4); }
+  70%  { box-shadow:0 0 0 6px rgba(16,185,129,0); }
+  100% { box-shadow:0 0 0 0 rgba(16,185,129,0); }
+}
+#btn-update.visible { animation:update-pulse 2s ease-out 1s 3; }
+body.light #btn-update { color:#059669; }
+body.light #btn-update:hover { background:rgba(5,150,105,0.10); color:#047857; }
+
 /* LAYOUT */
 #layout { display:flex; flex:1; overflow:hidden; }
 
@@ -525,8 +546,17 @@ body.light .stack-children { border-left-color:var(--border2); }
 <div id="titlebar">
   <div id="titlebar-left">
     <div id="app-logo"><i class="ti ti-layout-kanban"></i><span>Flow</span>board</div>
+    <div id="app-version" style="font-size:10px;color:var(--text-dim);letter-spacing:0.04em;user-select:none;"></div>
   </div>
   <div id="titlebar-right">
+    <button id="btn-update" aria-label="Update available" data-tip="Update available — click to download">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Download arrow -->
+        <path d="M7.5 1v9M7.5 10l-3.5-3.5M7.5 10l3.5-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Tray base -->
+        <path d="M2 12h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </button>
     <button class="win-btn" id="btn-theme" data-tip="Toggle light/dark mode" aria-label="Toggle theme" style="width:40px">
       <svg id="icon-theme-dark" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 9.5A6.5 6.5 0 0 1 4.5 1 6.5 6.5 0 1 0 13 9.5z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></svg>
       <svg id="icon-theme-light" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none"><circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="1"/><line x1="7" y1="0.5" x2="7" y2="2.5" stroke="currentColor" stroke-width="1"/><line x1="7" y1="11.5" x2="7" y2="13.5" stroke="currentColor" stroke-width="1"/><line x1="0.5" y1="7" x2="2.5" y2="7" stroke="currentColor" stroke-width="1"/><line x1="11.5" y1="7" x2="13.5" y2="7" stroke="currentColor" stroke-width="1"/><line x1="2.4" y1="2.4" x2="3.9" y2="3.9" stroke="currentColor" stroke-width="1"/><line x1="10.1" y1="10.1" x2="11.6" y2="11.6" stroke="currentColor" stroke-width="1"/><line x1="11.6" y1="2.4" x2="10.1" y2="3.9" stroke="currentColor" stroke-width="1"/><line x1="3.9" y1="10.1" x2="2.4" y2="11.6" stroke="currentColor" stroke-width="1"/></svg>
@@ -2226,6 +2256,30 @@ document.querySelectorAll('.sidebar-filter[data-filter]').forEach(function(btn) 
   });
 });
 document.getElementById('settings-btn').addEventListener('click', openApiModal);
+
+/* ── Version display ── */
+if (window.flowboard && window.flowboard.getVersion) {
+  window.flowboard.getVersion().then(function(v) {
+    var el = document.getElementById('app-version');
+    if (el) el.textContent = 'v' + v;
+  });
+}
+
+/* ── Update available notification ── */
+var updateUrl = null;
+if (window.flowboard && window.flowboard.onUpdateAvailable) {
+  window.flowboard.onUpdateAvailable(function(info) {
+    updateUrl = info.url;
+    var btn = document.getElementById('btn-update');
+    btn.classList.add('visible');
+    btn.setAttribute('data-tip', 'Update ' + info.version + ' available — click to download');
+  });
+}
+document.getElementById('btn-update').addEventListener('click', function() {
+  if (updateUrl && window.flowboard && window.flowboard.openExternal) {
+    window.flowboard.openExternal(updateUrl);
+  }
+});
 document.getElementById('weekly-copy-btn').addEventListener('click', function() {
   var text = buildStandupText();
   navigator.clipboard.writeText(text).then(function() {
