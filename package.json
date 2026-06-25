@@ -2,40 +2,66 @@
   "name": "flowboard",
   "version": "1.0.0",
   "description": "Personal AI-powered Kanban board",
+  "author": {
+    "name": "Flowboard",
+    "email": "support@flowboard.app"
+  },
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win --x64"
+    "build": "npm run build:win",
+    "build:win": "electron-builder --win --x64"
   },
   "build": {
     "appId": "com.flowboard.app",
     "productName": "Flowboard",
+    "copyright": "Copyright © 2025 Flowboard",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "assets"
     },
     "win": {
-      "target": "nsis",
-      "icon": "assets/icon.png"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "publisherName": "Flowboard"
     },
     "nsis": {
-      "oneClick": true,
-      "installerIcon": "assets/icon.png",
-      "uninstallerIcon": "assets/icon.png",
-      "shortcutName": "Flowboard"
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "shortcutName": "Flowboard",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "menuCategory": "Flowboard",
+      "deleteAppDataOnUninstall": false,
+      "license": "LICENSE.txt"
     },
     "files": [
       "main.js",
       "preload.js",
       "src/**",
-      "assets/**"
-    ]
+      "assets/**",
+      "!assets/icon.png",
+      "!**/*.map",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/.bin"
+    ],
+    "extraMetadata": {
+      "version": "1.0.0"
+    }
   },
   "devDependencies": {
-    "electron": "^42.5.0",
-    "electron-builder": "^26.15.3"
-  },
-  "allowScripts": {
-    "electron@31.7.7": true,
-    "electron-winstaller@5.4.0": true
+    "electron": "^31.0.0",
+    "electron-builder": "^24.0.0"
   }
 }
