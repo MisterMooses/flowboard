@@ -25,6 +25,7 @@
   --col-next: #F59E0B;
   --col-progress: #6C63FF;
   --col-done: #10B981;
+  --on-hold: #334155;
   --danger: #EF4444;
   --radius: 10px;
   --radius-sm: 6px;
@@ -88,7 +89,6 @@ body {
 .sidebar-stat-label { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); }
 .sidebar-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .sidebar-count { font-size: 12px; font-weight: 500; color: var(--text); }
-
 .sidebar-filter {
   display: flex; align-items: center; gap: 7px;
   padding: 7px 8px; border-radius: var(--radius-sm); margin-bottom: 2px;
@@ -98,7 +98,6 @@ body {
 .sidebar-filter:hover { background: var(--surface2); color: var(--text); }
 .sidebar-filter.active { background: var(--accent-dim); color: var(--accent); }
 .sidebar-filter i { font-size: 15px; }
-
 #sidebar-bottom { margin-top: auto; padding: 0 12px; }
 #settings-btn {
   display: flex; align-items: center; gap: 7px;
@@ -143,12 +142,18 @@ body {
 #board::-webkit-scrollbar-track { background: transparent; }
 #board::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
 
+/* COLUMNS */
 .column {
   background: var(--surface);
   border-radius: var(--radius);
   border: 0.5px solid var(--border);
   display: flex; flex-direction: column;
   min-height: 200px;
+  transition: border-color 0.15s;
+}
+.column.drag-over {
+  border-color: var(--accent);
+  background: rgba(108,99,255,0.05);
 }
 .col-header {
   padding: 11px 13px 10px;
@@ -159,31 +164,62 @@ body {
 .col-accent { width: 3px; height: 14px; border-radius: 2px; flex-shrink: 0; }
 .col-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); flex: 1; }
 .col-badge { font-size: 11px; color: var(--text-muted); background: var(--surface2); padding: 1px 8px; border-radius: 20px; }
-.col-body { padding: 9px; display: flex; flex-direction: column; gap: 7px; }
+.col-body { padding: 9px; display: flex; flex-direction: column; gap: 7px; min-height: 60px; }
 
+/* CARDS */
 .card {
   background: var(--surface2);
   border-radius: var(--radius-sm);
   border: 0.5px solid var(--border);
   padding: 10px 11px 10px 14px;
   position: relative;
-  transition: border-color 0.15s, transform 0.1s;
-  cursor: default;
+  transition: border-color 0.15s, transform 0.12s, opacity 0.15s;
+  cursor: grab;
 }
 .card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.card.dragging { opacity: 0.35; cursor: grabbing; transform: scale(0.98); }
+.card.drag-placeholder {
+  border: 1.5px dashed var(--accent);
+  background: var(--accent-dim);
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+}
+
+/* ON HOLD cards */
+.card.on-hold {
+  opacity: 0.58;
+  background: #181b26;
+  border-color: var(--on-hold);
+  border-style: dashed;
+}
+.card.on-hold .card-title { color: var(--text-muted); }
+.card.on-hold .card-bar { opacity: 0.4; }
+
+.hold-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+  color: #64748B; background: #1e2433; border: 0.5px solid #334155;
+  padding: 2px 7px; border-radius: 4px;
+}
+
 .card-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; }
 .card-title { font-size: 12.5px; font-weight: 500; color: var(--text); line-height: 1.45; }
 .card-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 7px; }
 .tag { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
-.card-footer { display: flex; align-items: center; gap: 8px; margin-top: 7px; flex-wrap: wrap; }
+.card-footer { display: flex; align-items: center; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
 .card-due { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
 .card-due.overdue { color: #F87171; }
 .card-due.soon { color: #F59E0B; }
-.card-actions { margin-left: auto; display: flex; gap: 3px; opacity: 0; transition: opacity 0.15s; }
+.card-actions { margin-left: auto; display: flex; gap: 2px; opacity: 0; transition: opacity 0.15s; }
 .card:hover .card-actions { opacity: 1; }
-.card-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 2px 3px; border-radius: 3px; font-size: 13px; transition: color 0.12s, background 0.12s; }
+.card-btn {
+  background: none; border: none; color: var(--text-dim); cursor: pointer;
+  padding: 2px 4px; border-radius: 3px; font-size: 13px;
+  transition: color 0.12s, background 0.12s;
+}
 .card-btn:hover { color: var(--text); background: var(--surface3); }
 .card-btn.del:hover { color: #F87171; }
+.card-btn.hold-active { color: #F59E0B; }
 
 .empty-col { padding: 24px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .empty-col i { font-size: 20px; color: var(--border2); }
@@ -291,15 +327,20 @@ body {
         <div class="sidebar-stat-label"><div class="sidebar-dot" style="background:#10B981"></div>Done</div>
         <div class="sidebar-count" id="stat-done">0</div>
       </div>
+      <div class="sidebar-stat">
+        <div class="sidebar-stat-label"><div class="sidebar-dot" style="background:#334155"></div>On Hold</div>
+        <div class="sidebar-count" id="stat-hold">0</div>
+      </div>
     </div>
 
     <div class="sidebar-section">
-      <div class="sidebar-label">Filter by Priority</div>
+      <div class="sidebar-label">Filter</div>
       <button class="sidebar-filter active" data-filter="all"><i class="ti ti-layout-list"></i>All tasks</button>
       <button class="sidebar-filter" data-filter="critical"><i class="ti ti-flame" style="color:#EF4444"></i>Critical</button>
       <button class="sidebar-filter" data-filter="high"><i class="ti ti-arrow-up" style="color:#6C63FF"></i>High</button>
       <button class="sidebar-filter" data-filter="medium"><i class="ti ti-minus" style="color:#F59E0B"></i>Medium</button>
       <button class="sidebar-filter" data-filter="low"><i class="ti ti-arrow-down" style="color:#64748B"></i>Low</button>
+      <button class="sidebar-filter" data-filter="hold"><i class="ti ti-player-pause" style="color:#64748B"></i>On Hold</button>
     </div>
 
     <div id="sidebar-bottom">
@@ -318,7 +359,7 @@ body {
     </div>
 
     <div id="board">
-      <div class="column" id="col-backlog">
+      <div class="column" id="col-backlog" data-col="backlog">
         <div class="col-header">
           <div class="col-accent" style="background:#64748B"></div>
           <div class="col-title">Backlog</div>
@@ -326,7 +367,7 @@ body {
         </div>
         <div class="col-body" id="cards-backlog"></div>
       </div>
-      <div class="column" id="col-next">
+      <div class="column" id="col-next" data-col="next">
         <div class="col-header">
           <div class="col-accent" style="background:#F59E0B"></div>
           <div class="col-title">Up Next</div>
@@ -334,7 +375,7 @@ body {
         </div>
         <div class="col-body" id="cards-next"></div>
       </div>
-      <div class="column" id="col-progress">
+      <div class="column" id="col-progress" data-col="progress">
         <div class="col-header">
           <div class="col-accent" style="background:#6C63FF"></div>
           <div class="col-title">In Progress</div>
@@ -342,7 +383,7 @@ body {
         </div>
         <div class="col-body" id="cards-progress"></div>
       </div>
-      <div class="column" id="col-done">
+      <div class="column" id="col-done" data-col="done">
         <div class="col-header">
           <div class="col-accent" style="background:#10B981"></div>
           <div class="col-title">Done</div>
@@ -358,7 +399,7 @@ body {
         <button id="cmd-btn"><i class="ti ti-arrow-up"></i></button>
       </div>
       <div id="cmd-status"></div>
-      <div id="cmd-hint">Press Enter to add · Shift+Enter for new line · tasks are saved automatically</div>
+      <div id="cmd-hint">Press Enter to add · Shift+Enter for new line · drag cards between columns</div>
     </div>
   </div>
 </div>
@@ -396,19 +437,22 @@ const TAG_STYLES = {
   other:    { bg:'#222536', color:'#8892A4' },
 };
 const PRIORITY_COLORS = { low:'#64748B', medium:'#F59E0B', high:'#6C63FF', critical:'#EF4444' };
+const PRIORITY_ORDER  = { critical:0, high:1, medium:2, low:3 };
 const COLS = ['backlog','next','progress','done'];
 const EMPTY_MSGS = {
-  backlog: ['ti-inbox','No backlog tasks'],
-  next:    ['ti-clock','Nothing queued up'],
-  progress:['ti-loader','Nothing active yet'],
-  done:    ['ti-circle-check','Completions appear here'],
+  backlog:  ['ti-inbox',        'No backlog tasks'],
+  next:     ['ti-clock',        'Nothing queued up'],
+  progress: ['ti-loader',       'Nothing active yet'],
+  done:     ['ti-circle-check', 'Completions appear here'],
 };
 
 let tasks = [];
 let config = {};
 let activeFilter = 'all';
 let searchQuery = '';
+let dragId = null;
 
+/* ── helpers ── */
 function tagStyle(t) {
   const s = TAG_STYLES[t] || TAG_STYLES.other;
   return `background:${s.bg};color:${s.color};`;
@@ -420,54 +464,119 @@ function formatDue(dateStr) {
   const now = new Date(); now.setHours(0,0,0,0);
   const diff = Math.floor((d - now) / 86400000);
   const label = d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
-  let cls = diff < 0 ? 'overdue' : diff <= 2 ? 'soon' : '';
-  return { label, cls };
-}
-
-function visibleTasks() {
-  return tasks.filter(t => {
-    if (activeFilter !== 'all' && t.priority !== activeFilter) return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      return t.title.toLowerCase().includes(q) || (t.tags || []).some(tag => tag.includes(q));
-    }
-    return true;
-  });
-}
-
-function renderBoard() {
-  const visible = visibleTasks();
-  COLS.forEach(col => {
-    const colTasks = visible.filter(t => t.column === col);
-    const body = document.getElementById('cards-' + col);
-    const [icon, msg] = EMPTY_MSGS[col];
-    body.innerHTML = colTasks.length
-      ? colTasks.map(t => {
-          const due = formatDue(t.due);
-          const bar = PRIORITY_COLORS[t.priority] || '#64748B';
-          return `<div class="card" data-id="${t.id}">
-            <div class="card-bar" style="background:${bar}"></div>
-            <div class="card-title">${escHtml(t.title)}</div>
-            ${t.tags?.length ? `<div class="card-tags">${t.tags.map(tag=>`<span class="tag" style="${tagStyle(tag)}">${tag}</span>`).join('')}</div>` : ''}
-            <div class="card-footer">
-              ${due ? `<div class="card-due ${due.cls}"><i class="ti ti-calendar" style="font-size:11px"></i>${due.label}</div>` : ''}
-              <div class="card-actions">
-                <button class="card-btn del" onclick="deleteTask('${t.id}')" title="Delete"><i class="ti ti-trash"></i></button>
-              </div>
-            </div>
-          </div>`;
-        }).join('')
-      : `<div class="empty-col"><i class="ti ${icon}"></i><p>${msg}</p></div>`;
-    document.getElementById('badge-' + col).textContent = colTasks.length;
-    document.getElementById('stat-' + col).textContent = tasks.filter(t => t.column === col).length;
-  });
-  const total = tasks.length;
-  document.getElementById('task-count-badge').textContent = total + ' task' + (total !== 1 ? 's' : '');
+  return { label, cls: diff < 0 ? 'overdue' : diff <= 2 ? 'soon' : '' };
 }
 
 function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+function sortedTasks(arr) {
+  return [...arr].sort((a, b) => {
+    const holdDiff = (a.onHold ? 1 : 0) - (b.onHold ? 1 : 0);
+    if (holdDiff !== 0) return holdDiff;
+    return (PRIORITY_ORDER[a.priority] ?? 4) - (PRIORITY_ORDER[b.priority] ?? 4);
+  });
+}
+
+function visibleTasks() {
+  return tasks.filter(t => {
+    if (activeFilter === 'hold') return t.onHold;
+    if (activeFilter !== 'all' && t.priority !== activeFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return t.title.toLowerCase().includes(q) || (t.tags||[]).some(tag => tag.includes(q));
+    }
+    return true;
+  });
+}
+
+/* ── render ── */
+function renderCard(t) {
+  const due = formatDue(t.due);
+  const bar = PRIORITY_COLORS[t.priority] || '#64748B';
+  const holdCls = t.onHold ? ' on-hold' : '';
+  const holdBtn = `<button class="card-btn ${t.onHold?'hold-active':''}" onclick="toggleHold('${t.id}')" title="${t.onHold?'Resume':'Put on hold'}"><i class="ti ti-player-pause"></i></button>`;
+  return `<div class="card${holdCls}" data-id="${t.id}" draggable="true">
+    <div class="card-bar" style="background:${bar}"></div>
+    <div class="card-title">${escHtml(t.title)}</div>
+    ${t.tags?.length ? `<div class="card-tags">${t.tags.map(tag=>`<span class="tag" style="${tagStyle(tag)}">${tag}</span>`).join('')}</div>` : ''}
+    <div class="card-footer">
+      ${t.onHold ? `<span class="hold-badge"><i class="ti ti-player-pause" style="font-size:10px"></i>on hold</span>` : ''}
+      ${due ? `<div class="card-due ${due.cls}"><i class="ti ti-calendar" style="font-size:11px"></i>${due.label}</div>` : ''}
+      <div class="card-actions">
+        ${holdBtn}
+        <button class="card-btn del" onclick="deleteTask('${t.id}')" title="Delete"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderBoard() {
+  const visible = visibleTasks();
+  COLS.forEach(col => {
+    const colTasks = sortedTasks(visible.filter(t => t.column === col));
+    const body = document.getElementById('cards-' + col);
+    const [icon, msg] = EMPTY_MSGS[col];
+    body.innerHTML = colTasks.length
+      ? colTasks.map(renderCard).join('')
+      : `<div class="empty-col"><i class="ti ${icon}"></i><p>${msg}</p></div>`;
+    document.getElementById('badge-' + col).textContent = colTasks.length;
+    document.getElementById('stat-' + col).textContent = tasks.filter(t => t.column === col).length;
+  });
+  document.getElementById('stat-hold').textContent = tasks.filter(t => t.onHold).length;
+  const total = tasks.length;
+  document.getElementById('task-count-badge').textContent = total + ' task' + (total !== 1 ? 's' : '');
+  bindDragEvents();
+}
+
+/* ── drag & drop ── */
+function bindDragEvents() {
+  document.querySelectorAll('.card[draggable]').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragId = card.dataset.id;
+      setTimeout(() => card.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      document.querySelectorAll('.column').forEach(c => c.classList.remove('drag-over'));
+      dragId = null;
+    });
+  });
+
+  document.querySelectorAll('.column').forEach(col => {
+    col.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      col.classList.add('drag-over');
+    });
+    col.addEventListener('dragleave', e => {
+      if (!col.contains(e.relatedTarget)) col.classList.remove('drag-over');
+    });
+    col.addEventListener('drop', async e => {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      if (!dragId) return;
+      const targetCol = col.dataset.col;
+      const task = tasks.find(t => t.id === dragId);
+      if (task && task.column !== targetCol) {
+        task.column = targetCol;
+        await window.flowboard.saveTasks(tasks);
+        renderBoard();
+      }
+    });
+  });
+}
+
+/* ── actions ── */
+window.toggleHold = async function(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  task.onHold = !task.onHold;
+  await window.flowboard.saveTasks(tasks);
+  renderBoard();
+};
 
 window.deleteTask = async function(id) {
   tasks = tasks.filter(t => t.id !== id);
@@ -475,17 +584,14 @@ window.deleteTask = async function(id) {
   renderBoard();
 };
 
+/* ── add task ── */
 async function addTask() {
   const input = document.getElementById('cmd-input');
   const btn = document.getElementById('cmd-btn');
   const status = document.getElementById('cmd-status');
   const text = input.value.trim();
   if (!text) return;
-
-  if (!config.apiKey) {
-    openModal();
-    return;
-  }
+  if (!config.apiKey) { openModal(); return; }
 
   btn.disabled = true;
   btn.innerHTML = '<i class="ti ti-loader spin"></i>';
@@ -496,7 +602,7 @@ async function addTask() {
     const raw = await window.flowboard.callAnthropic({ apiKey: config.apiKey, prompt: text });
     const parsed = JSON.parse(raw);
     const newTasks = (Array.isArray(parsed) ? parsed : [parsed]).map(t => ({
-      ...t, id: Date.now().toString(36) + Math.random().toString(36).slice(2)
+      ...t, onHold: false, id: Date.now().toString(36) + Math.random().toString(36).slice(2)
     }));
     tasks.push(...newTasks);
     await window.flowboard.saveTasks(tasks);
@@ -517,6 +623,7 @@ async function addTask() {
   input.focus();
 }
 
+/* ── modal ── */
 function openModal() {
   document.getElementById('api-key-input').value = config.apiKey || '';
   document.getElementById('modal-overlay').classList.add('open');
@@ -526,21 +633,22 @@ function closeModal() { document.getElementById('modal-overlay').classList.remov
 
 function updateApiStatus() {
   const el = document.getElementById('api-status');
-  if (config.apiKey) {
-    el.innerHTML = '<span class="status-ok"><i class="ti ti-circle-check" style="font-size:11px;vertical-align:-1px"></i> API key saved</span>';
-  } else {
-    el.innerHTML = '<span class="status-bad"><i class="ti ti-alert-circle" style="font-size:11px;vertical-align:-1px"></i> No API key set</span>';
-  }
+  el.innerHTML = config.apiKey
+    ? '<span class="status-ok"><i class="ti ti-circle-check" style="font-size:11px;vertical-align:-1px"></i> API key saved</span>'
+    : '<span class="status-bad"><i class="ti ti-alert-circle" style="font-size:11px;vertical-align:-1px"></i> No API key set</span>';
 }
 
+/* ── init ── */
 async function init() {
   config = await window.flowboard.getConfig();
   tasks = await window.flowboard.getTasks();
+  tasks.forEach(t => { if (t.onHold === undefined) t.onHold = false; });
   updateApiStatus();
   renderBoard();
   if (!config.apiKey) setTimeout(openModal, 600);
 }
 
+/* ── event listeners ── */
 document.getElementById('cmd-input').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addTask(); }
 });
@@ -549,12 +657,9 @@ document.getElementById('cmd-input').addEventListener('input', function() {
   this.style.height = Math.min(this.scrollHeight, 90) + 'px';
 });
 document.getElementById('cmd-btn').addEventListener('click', addTask);
-
 document.getElementById('search-input').addEventListener('input', function() {
-  searchQuery = this.value.trim();
-  renderBoard();
+  searchQuery = this.value.trim(); renderBoard();
 });
-
 document.querySelectorAll('.sidebar-filter').forEach(btn => {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.sidebar-filter').forEach(b => b.classList.remove('active'));
@@ -563,18 +668,15 @@ document.querySelectorAll('.sidebar-filter').forEach(btn => {
     renderBoard();
   });
 });
-
 document.getElementById('settings-btn').addEventListener('click', openModal);
 document.getElementById('modal-cancel').addEventListener('click', closeModal);
 document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
 document.getElementById('modal-save').addEventListener('click', async () => {
-  const key = document.getElementById('api-key-input').value.trim();
-  config.apiKey = key;
+  config.apiKey = document.getElementById('api-key-input').value.trim();
   await window.flowboard.saveConfig(config);
   updateApiStatus();
   closeModal();
 });
-
 document.getElementById('btn-min').addEventListener('click', () => window.flowboard.minimize());
 document.getElementById('btn-max').addEventListener('click', () => window.flowboard.maximize());
 document.getElementById('btn-close').addEventListener('click', () => window.flowboard.close());
