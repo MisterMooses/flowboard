@@ -285,7 +285,7 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
       <div class="col-focus-hint" id="col-focus-hint" style="display:none;">Click column name to collapse</div>
     </div>
 
-    <div class="sidebar-section" id="section-priority">
+    <div class="sidebar-section collapsed" id="section-priority">
       <div class="sidebar-section-header" onclick="toggleSection('section-priority')" data-tip="Collapse/expand">
         <div class="sidebar-label" style="margin:0">Filter by Priority</div>
         <i class="ti ti-chevron-down sidebar-chevron"></i>
@@ -300,7 +300,7 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
       </div>
     </div>
 
-    <div class="sidebar-section" id="section-tags">
+    <div class="sidebar-section collapsed" id="section-tags">
       <div class="sidebar-section-header" onclick="toggleSection('section-tags')" data-tip="Collapse/expand">
         <div class="sidebar-label" style="margin:0">Filter by Tag</div>
         <i class="ti ti-chevron-down sidebar-chevron"></i>
@@ -706,6 +706,51 @@ window.deleteTask = async function(id) {
   renderBoard();
 };
 
+/* ── Schedule context builder ── */
+function buildScheduleContext() {
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var todayStr = today.toISOString().split('T')[0];
+
+  /* Day names for reference */
+  var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  /* Build load map: date -> { count, priorities } */
+  var load = {};
+  tasks.forEach(function(t) {
+    if (!t.due || t.column === 'done') return;
+    var d = t.due;
+    if (!load[d]) load[d] = { count: 0, priorities: [] };
+    load[d].count++;
+    load[d].priorities.push(t.priority || 'low');
+  });
+
+  /* Generate next 28 calendar days, mark valid work days (Tue-Fri = 2,3,4,5) */
+  var lines = ['Today: ' + todayStr + ' (' + dayNames[today.getDay()] + ')'];
+  lines.push('Valid work days: Tuesday, Wednesday, Thursday, Friday only.');
+  lines.push('Upcoming schedule load:');
+
+  var shown = 0;
+  for (var i = 0; i <= 28 && shown < 16; i++) {
+    var d = new Date(today);
+    d.setDate(today.getDate() + i);
+    var dow = d.getDay(); /* 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat */
+    if (dow < 2 || dow > 5) continue; /* skip Mon, Sat, Sun */
+    shown++;
+    var ds = d.toISOString().split('T')[0];
+    var dayLabel = ds + ' (' + dayNames[dow] + ')';
+    if (load[ds]) {
+      var l = load[ds];
+      var prioritySummary = l.priorities.join(', ');
+      lines.push('  ' + dayLabel + ': ' + l.count + ' task(s) [' + prioritySummary + ']');
+    } else {
+      lines.push('  ' + dayLabel + ': free');
+    }
+  }
+
+  return lines.join('\n');
+}
+
 /* ── Add task ── */
 async function addTask() {
   var input = document.getElementById('cmd-input');
@@ -721,22 +766,33 @@ async function addTask() {
   input.disabled = true;
 
   var knownTags = allTagNames().join(', ');
-  var today = new Date().toISOString().split('T')[0];
+  var schedCtx = buildScheduleContext();
 
   var systemPrompt = 'You are a task parser for a personal Kanban board. Return ONLY a JSON array, no markdown, no preamble.\n\n'
     + 'Each task object must have:\n'
     + '  "title": concise task name, max 80 chars\n'
     + '  "column": "backlog"|"next"|"progress"|"done"\n'
     + '  "priority": "low"|"medium"|"high"|"critical" — see rules below\n'
-    + '  "due": "YYYY-MM-DD" if a date is mentioned, otherwise null. Today is ' + today + '. Interpret relative dates.\n'
+    + '  "due": YYYY-MM-DD date string — see due date rules below\n'
     + '  "tags": array of 1-3 lowercase strings from the preferred list when they fit\n\n'
     + 'PRIORITY RULES — always assign a priority, even when not stated explicitly:\n'
     + '  critical — deadlines today/tomorrow, words like urgent/ASAP/blocking, or severe consequences if missed\n'
     + '  high     — due within the week, important project work, client-facing tasks, or tags like kaseya/operations\n'
     + '  medium   — due within 2 weeks, routine project tasks, internal work with moderate impact\n'
     + '  low      — no deadline, nice-to-have, research, documentation with no urgency, or far-future tasks\n'
-    + 'When priority is not stated: reason from the task title, due date, and tags together. '
-    + 'A task tagged "operations" due next week is high. A research task with no date is low. Use judgment.\n\n'
+    + 'When priority is not stated: reason from the task title, any mentioned date, and tags together. Use judgment.\n\n'
+    + 'DUE DATE RULES — always assign a due date using this logic:\n'
+    + '  1. If the user explicitly states a date or relative phrase (tomorrow, next Friday, end of month), use it exactly.\n'
+    + '  2. Otherwise, infer a due date based on priority AND current workload:\n'
+    + '     critical → next 1-2 available work days\n'
+    + '     high     → within this work week or next available\n'
+    + '     medium   → 1-2 weeks out\n'
+    + '     low      → 2-4 weeks out\n'
+    + '  3. ONLY assign dates that fall on Tuesday, Wednesday, Thursday, or Friday (the user works 4x10 Tue-Fri). Never Monday, Saturday, or Sunday.\n'
+    + '  4. Distribute load intelligently — prefer dates with fewer or lighter tasks already assigned.\n'
+    + '  5. Consider task complexity: a complex multi-step task needs more runway than a quick action.\n\n'
+    + 'CURRENT SCHEDULE LOAD (existing tasks by due date):\n'
+    + schedCtx + '\n\n'
     + 'COLUMN RULES: "progress" if actively working on it, "next" if high/critical priority or due within a week, '
     + '"backlog" if low/medium with no near deadline, "done" if completed.\n\n'
     + 'Preferred tags (use when they fit): ' + knownTags + '\n'
