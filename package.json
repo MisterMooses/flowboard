@@ -22,7 +22,6 @@
     "win": {
       "target": "nsis",
       "icon": "assets/icon.ico",
-      "requestedExecutionLevel": "asInvoker",
       "publisherName": "Flowboard"
     },
     "nsis": {
@@ -31,7 +30,6 @@
       "allowToChangeInstallationDirectory": false,
       "installerIcon": "assets/icon.ico",
       "uninstallerIcon": "assets/icon.ico",
-      "installerHeaderIcon": "assets/icon.ico",
       "shortcutName": "Flowboard",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
@@ -45,10 +43,7 @@
       "src/**",
       "assets/**",
       "!assets/icon.png",
-      "!**/*.map",
-      "!**/node_modules/*/{CHANGELOG.md,README.md,readme.md,readme}",
-      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
-      "!**/node_modules/.bin"
+      "!**/*.map"
     ]
   },
   "devDependencies": {
