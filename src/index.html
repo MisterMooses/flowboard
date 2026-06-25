@@ -367,7 +367,21 @@ body.light .column.drag-over { background:rgba(91,82,232,0.04); }
 .note-entry {
   border-left:2px solid var(--accent); padding:4px 0 4px 9px;
 }
-.note-ts { font-size:10px; color:var(--text-dim); margin-bottom:2px; }
+.note-entry.hold-note {
+  border-left:2px solid #F59E0B;
+  background:rgba(245,158,11,0.07);
+  border-radius:0 5px 5px 0;
+  padding:5px 8px 5px 9px;
+}
+body.light .note-entry.hold-note { background:rgba(180,83,9,0.07); }
+.note-ts-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+.note-ts { font-size:10px; color:var(--text-dim); }
+.note-hold-tag {
+  font-size:9px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+  color:#F59E0B; background:rgba(245,158,11,0.15); border:0.5px solid rgba(245,158,11,0.4);
+  padding:1px 6px; border-radius:3px; flex-shrink:0;
+}
+body.light .note-hold-tag { background:rgba(180,83,9,0.1); border-color:rgba(180,83,9,0.35); color:#B45309; }
 .note-text { font-size:12px; color:var(--text); line-height:1.5; white-space:pre-wrap; }
 #notes-empty { font-size:11px; color:var(--text-dim); text-align:center; padding:10px 0; }
 #notes-input-row { padding:8px 12px 10px; border-top:0.5px solid var(--border); display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
@@ -452,6 +466,53 @@ body.light #notes-bubble::after { border-right-color:var(--surface); }
 
 body.light .stack-children { border-left-color:var(--border2); }
 
+
+/* WEEKLY SUMMARY PANEL */
+#section-weekly .sidebar-collapsible { max-height:600px; }
+#section-weekly.collapsed .sidebar-collapsible { max-height:0; opacity:0; }
+
+.weekly-sub {
+  font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--text-dim); margin:10px 4px 6px; display:flex; align-items:center; gap:5px;
+}
+.weekly-sub-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+
+.weekly-day { margin-bottom:8px; }
+.weekly-day-label {
+  font-size:10px; font-weight:600; color:var(--text-muted);
+  margin-bottom:3px; padding:0 2px;
+}
+.weekly-item {
+  display:flex; align-items:flex-start; gap:5px;
+  padding:3px 4px; border-radius:4px; cursor:default;
+  transition:background 0.1s;
+}
+.weekly-item:hover { background:var(--surface2); }
+.weekly-item-dot {
+  width:5px; height:5px; border-radius:50%; flex-shrink:0; margin-top:4px;
+}
+.weekly-item-text {
+  font-size:11px; color:var(--text-muted); line-height:1.4; flex:1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.weekly-item-text.done-item { color:var(--col-done); }
+.weekly-note-text {
+  font-size:10px; color:var(--text-dim); font-style:italic; margin-top:1px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.weekly-empty {
+  font-size:11px; color:var(--text-dim); padding:2px 4px; font-style:italic;
+}
+#weekly-copy-btn {
+  display:flex; align-items:center; gap:5px; margin-top:10px;
+  padding:6px 8px; border-radius:var(--radius-sm); width:100%;
+  background:none; border:0.5px solid var(--border2); color:var(--text-muted);
+  cursor:pointer; font-size:11px; font-family:inherit;
+  transition:background 0.12s, color 0.12s;
+}
+#weekly-copy-btn:hover { background:var(--surface2); color:var(--text); }
+#weekly-copy-btn i { font-size:12px; }
+
 /* TOOLTIP */
 .fb-tooltip { position:fixed; z-index:9999; pointer-events:none; background:#0a0c13; border:0.5px solid var(--border2); color:var(--text); font-size:11px; font-family:'Inter',sans-serif; padding:4px 9px; border-radius:5px; white-space:nowrap; opacity:0; transition:opacity 0.12s; }
 .fb-tooltip.visible { opacity:1; }
@@ -495,6 +556,19 @@ body.light .stack-children { border-left-color:var(--border2); }
 
 <div id="layout">
   <div id="sidebar">
+    <div class="sidebar-section collapsed" id="section-weekly">
+      <div class="sidebar-section-header" onclick="toggleSection('section-weekly')" data-tip="Meeting prep summary">
+        <div class="sidebar-label" style="margin:0">Weekly Summary</div>
+        <i class="ti ti-chevron-down sidebar-chevron"></i>
+      </div>
+      <div class="sidebar-collapsible">
+        <div id="weekly-panel-content"></div>
+        <button id="weekly-copy-btn" data-tip="Copy summary to clipboard">
+          <i class="ti ti-copy"></i> Copy for standup
+        </button>
+      </div>
+    </div>
+
     <div class="sidebar-section">
       <div class="sidebar-label" style="padding:0 4px;margin-bottom:8px;">Columns</div>
       <div class="sidebar-stat" data-focus-col="backlog" data-tip="Expand Backlog column" onclick="focusColumn('backlog')">
@@ -916,7 +990,7 @@ function cardMetaAndActions(t) {
   var actionsRow = '<div class="card-actions">'
     + '<button class="card-btn' + completeCls + '" onclick="completeTask(\'' + t.id + '\')" data-tip="' + completeTip + '">'
     + '<i class="ti ti-circle-check"></i><span class="card-btn-label">' + completeLabel + '</span></button>'
-    + '<button class="card-btn' + holdActiveCls + '" onclick="toggleHold(\'' + t.id + '\')" data-tip="' + holdTip + '">'
+    + '<button class="card-btn' + holdActiveCls + '" onclick="toggleHold(\'' + t.id + '\',event)" data-tip="' + holdTip + '">'
     + '<i class="ti ti-player-pause"></i><span class="card-btn-label">' + holdLabel + '</span></button>'
     + '<button class="card-btn-del" onclick="deleteTask(\'' + t.id + '\')" data-tip="Delete this task">'
     + '<svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><path d="M1 3h10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M4 3V2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><rect x="2" y="4" width="8" height="9" rx="1" stroke="currentColor" stroke-width="1.1"/><line x1="4.5" y1="6" x2="4.5" y2="11" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="7.5" y1="6" x2="7.5" y2="11" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg></button>'
@@ -1052,6 +1126,7 @@ function renderBoard() {
   var total = tasks.filter(function(t){ return !t.parentId; }).length;
   document.getElementById('task-count-badge').textContent = total + ' task' + (total !== 1 ? 's' : '');
   renderSidebarTags();
+  renderWeeklySummary();
   bindDragEvents();
 }
 
@@ -1107,12 +1182,17 @@ function bindDragEvents() {
 }
 
 /* ── Card actions ── */
-window.toggleHold = async function(id) {
+window.toggleHold = function(id, e) {
   var task = tasks.find(function(t){ return t.id === id; });
   if (!task) return;
-  task.onHold = !task.onHold;
-  await window.flowboard.saveTasks(tasks);
-  renderBoard();
+  if (task.onHold) {
+    /* Resuming — clear hold directly, no note required */
+    task.onHold = false;
+    window.flowboard.saveTasks(tasks).then(function(){ renderBoard(); });
+  } else {
+    /* Putting on hold — open notes bubble in hold mode */
+    openNotesForHold(e || null, id);
+  }
 };
 
 window.completeTask = async function(id) {
@@ -1120,6 +1200,11 @@ window.completeTask = async function(id) {
   if (!task) return;
   task.column = task.column === 'done' ? 'progress' : 'done';
   task.onHold = false;
+  if (task.column === 'done') {
+    task.completedAt = new Date().toISOString();
+  } else {
+    delete task.completedAt;
+  }
   /* If this is a child, move it to same column as parent */
   if (task.parentId && task.column !== 'done') {
     var parent = tasks.find(function(t){ return t.id === task.parentId; });
@@ -1127,6 +1212,7 @@ window.completeTask = async function(id) {
   }
   await window.flowboard.saveTasks(tasks);
   renderBoard();
+  renderWeeklySummary();
 };
 
 window.deleteTask = async function(id) {
@@ -1669,6 +1755,7 @@ async function init() {
 
   updateApiStatus();
   renderBoard();
+  renderWeeklySummary();
   applyTheme(config.theme || 'dark');
   if (!config.apiKey) setTimeout(openApiModal, 600);
 }
@@ -1697,6 +1784,28 @@ async function toggleTheme() {
 
 /* ── Notes bubble ── */
 var notesTaskId = null;
+var notesHoldMode = false; /* true when bubble opened to capture hold reason */
+
+function openNotesForHold(e, id) {
+  notesHoldMode = true;
+  /* Find the hold button on this card to anchor the bubble position */
+  var card = document.querySelector('.card[data-id="' + id + '"]');
+  var anchorBtn = card ? card.querySelector('.card-btn') : null;
+  /* Build a minimal synthetic event if needed */
+  var posE = (e && e.currentTarget) ? e : { stopPropagation: function(){}, currentTarget: anchorBtn || document.body };
+  window.openNotes(posE, id);
+  /* Apply hold-mode UI */
+  document.getElementById('notes-save').textContent = 'Save & Put on Hold';
+  document.getElementById('notes-save').style.background = '#B45309';
+  document.getElementById('notes-textarea').placeholder = 'Required: briefly describe why this task is on hold...';
+  if (!document.getElementById('hold-mode-badge')) {
+    var badge = document.createElement('span');
+    badge.id = 'hold-mode-badge';
+    badge.style.cssText = 'font-size:10px;font-weight:600;background:rgba(245,158,11,0.15);color:#F59E0B;padding:2px 7px;border-radius:4px;flex-shrink:0;margin-left:auto;';
+    badge.textContent = 'Hold reason';
+    document.getElementById('notes-bubble-header').appendChild(badge);
+  }
+}
 
 window.openNotes = function(e, id) {
   e.stopPropagation();
@@ -1712,6 +1821,14 @@ window.openNotes = function(e, id) {
   }
 
   notesTaskId = id;
+  /* Reset hold mode UI if opening normally */
+  if (!notesHoldMode) {
+    document.getElementById('notes-save').textContent = 'Save Note';
+    document.getElementById('notes-save').style.background = '';
+    document.getElementById('notes-textarea').placeholder = 'Add a progress note...';
+    var oldBadge = document.getElementById('hold-mode-badge');
+    if (oldBadge) oldBadge.remove();
+  }
   document.getElementById('notes-bubble-title').textContent = task.title;
   renderNotesList(task);
   document.getElementById('notes-textarea').value = '';
@@ -1745,6 +1862,14 @@ window.openNotes = function(e, id) {
 function closeNotes() {
   document.getElementById('notes-bubble').classList.remove('open');
   notesTaskId = null;
+  if (notesHoldMode) {
+    notesHoldMode = false;
+    document.getElementById('notes-save').textContent = 'Save Note';
+    document.getElementById('notes-save').style.background = '';
+    document.getElementById('notes-textarea').placeholder = 'Add a progress note...';
+    var b = document.getElementById('hold-mode-badge');
+    if (b) b.remove();
+  }
 }
 
 function renderNotesList(task) {
@@ -1758,8 +1883,14 @@ function renderNotesList(task) {
     var d = new Date(n.ts);
     var label = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
       + ' ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-    return '<div class="note-entry">'
-      + '<div class="note-ts">' + label + '</div>'
+    var isHold = !!n.isHold;
+    var entryCls = isHold ? 'note-entry hold-note' : 'note-entry';
+    var tsRow = '<div class="note-ts-row">'
+      + '<span class="note-ts">' + label + '</span>'
+      + (isHold ? '<span class="note-hold-tag">On Hold</span>' : '')
+      + '</div>';
+    return '<div class="' + entryCls + '">'
+      + tsRow
       + '<div class="note-text">' + escHtml(n.text) + '</div>'
       + '</div>';
   }).join('');
@@ -1767,15 +1898,29 @@ function renderNotesList(task) {
 
 async function saveNote() {
   var text = document.getElementById('notes-textarea').value.trim();
-  if (!text || !notesTaskId) return;
+  if (!notesTaskId) return;
+  /* In hold mode a note is required — shake the textarea if empty */
+  if (!text) {
+    var ta = document.getElementById('notes-textarea');
+    ta.style.borderColor = '#F87171';
+    ta.focus();
+    setTimeout(function(){ ta.style.borderColor = ''; }, 1500);
+    return;
+  }
   var task = tasks.find(function(t){ return t.id === notesTaskId; });
   if (!task) return;
   if (!task.notes) task.notes = [];
-  task.notes.push({ text: text, ts: new Date().toISOString() });
+  task.notes.push({ text: text, ts: new Date().toISOString(), isHold: notesHoldMode ? true : undefined });
+  var wasHoldMode = notesHoldMode;
+  if (wasHoldMode) task.onHold = true;
   await window.flowboard.saveTasks(tasks);
-  renderNotesList(task);
-  document.getElementById('notes-textarea').value = '';
-  renderBoard(); /* update note count dot */
+  if (wasHoldMode) {
+    closeNotes();
+  } else {
+    renderNotesList(task);
+    document.getElementById('notes-textarea').value = '';
+  }
+  renderBoard();
 }
 
 /* Add a note to a task by title match (used by command bar) */
@@ -1807,6 +1952,217 @@ document.addEventListener('mousedown', function(e) {
 });
 
 /* Flipped arrow (bubble opens to the left of the card) */
+
+
+/* ── Weekly Summary ── */
+function getWorkWeekBounds(offsetWeeks) {
+  /* Returns { start, end } as Date objects for the Tue-Fri work week
+     offsetWeeks=0 → this week, -1 → last week */
+  var now = new Date();
+  now.setHours(0,0,0,0);
+  var dow = now.getDay(); /* 0=Sun,1=Mon,2=Tue,...,6=Sat */
+
+  /* Find the most recent Tuesday (start of current work week) */
+  var daysToTue = (dow >= 2) ? (dow - 2) : (dow + 5);
+  var thisTue = new Date(now);
+  thisTue.setDate(now.getDate() - daysToTue);
+
+  var start = new Date(thisTue);
+  start.setDate(start.getDate() + (offsetWeeks * 7));
+  var end = new Date(start);
+  end.setDate(end.getDate() + 4); /* Fri = Tue + 4 */
+  end.setHours(23,59,59,999);
+  return { start: start, end: end };
+}
+
+function isoDateStr(d) {
+  return d.toISOString().split('T')[0];
+}
+
+function dayLabel(dateStr) {
+  var d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+}
+
+function renderWeeklySummary() {
+  var panel = document.getElementById('weekly-panel-content');
+  if (!panel) return;
+
+  var thisWeek = getWorkWeekBounds(0);
+  var lastWeek = getWorkWeekBounds(-1);
+
+  /* ── THIS WEEK: active tasks due Tue-Fri this week ── */
+  var upcoming = tasks.filter(function(t) {
+    if (t.column === 'done' || t.onHold) return false;
+    if (!t.due) return false;
+    var d = new Date(t.due + 'T12:00:00');
+    return d >= thisWeek.start && d <= thisWeek.end;
+  });
+
+  /* Group by due date */
+  var upcomingByDay = {};
+  upcoming.forEach(function(t) {
+    if (!upcomingByDay[t.due]) upcomingByDay[t.due] = [];
+    upcomingByDay[t.due].push(t);
+  });
+  var upcomingDays = Object.keys(upcomingByDay).sort();
+
+  var PRIORITY_COLORS_MAP = { critical:'#EF4444', high:'#6C63FF', medium:'#F59E0B', low:'#64748B' };
+
+  var upcomingHtml = '<div class="weekly-sub"><span class="weekly-sub-dot" style="background:#6C63FF"></span>This week</div>';
+  if (!upcomingDays.length) {
+    upcomingHtml += '<div class="weekly-empty">No tasks due this week</div>';
+  } else {
+    upcomingDays.forEach(function(day) {
+      upcomingHtml += '<div class="weekly-day"><div class="weekly-day-label">' + dayLabel(day) + '</div>';
+      upcomingByDay[day].forEach(function(t) {
+        var dotColor = PRIORITY_COLORS_MAP[t.priority] || '#64748B';
+        upcomingHtml += '<div class="weekly-item">'
+          + '<span class="weekly-item-dot" style="background:' + dotColor + '"></span>'
+          + '<span class="weekly-item-text" title="' + escHtml(t.title) + '">' + escHtml(t.title) + '</span>'
+          + '</div>';
+      });
+      upcomingHtml += '</div>';
+    });
+  }
+
+  /* ── LAST WEEK: completed tasks + tasks with notes from last week ── */
+  var lwStart = lastWeek.start;
+  var lwEnd = lastWeek.end;
+
+  /* Completed last week */
+  var completedLW = tasks.filter(function(t) {
+    if (t.column !== 'done') return false;
+    if (t.completedAt) {
+      var ca = new Date(t.completedAt);
+      return ca >= lwStart && ca <= lwEnd;
+    }
+    /* Fallback: check due date in last week */
+    if (t.due) {
+      var d = new Date(t.due + 'T12:00:00');
+      return d >= lwStart && d <= lwEnd;
+    }
+    return false;
+  });
+
+  /* Tasks with notes added last week (regardless of status) */
+  var notedLW = [];
+  tasks.forEach(function(t) {
+    var recentNotes = (t.notes || []).filter(function(n) {
+      var nd = new Date(n.ts);
+      return nd >= lwStart && nd <= lwEnd;
+    });
+    if (recentNotes.length) {
+      notedLW.push({ task: t, notes: recentNotes });
+    }
+  });
+
+  var lastWeekHtml = '<div class="weekly-sub" style="margin-top:14px"><span class="weekly-sub-dot" style="background:#10B981"></span>Last week</div>';
+  if (!completedLW.length && !notedLW.length) {
+    lastWeekHtml += '<div class="weekly-empty">No completed tasks or updates from last week</div>';
+  } else {
+    completedLW.forEach(function(t) {
+      lastWeekHtml += '<div class="weekly-item">'
+        + '<span class="weekly-item-dot" style="background:#10B981"></span>'
+        + '<span class="weekly-item-text done-item" title="' + escHtml(t.title) + '">' + escHtml(t.title) + '</span>'
+        + '</div>';
+    });
+    notedLW.forEach(function(entry) {
+      var alreadyDone = completedLW.some(function(t){ return t.id === entry.task.id; });
+      if (alreadyDone) return; /* avoid double-listing */
+      var lastNote = entry.notes[entry.notes.length - 1];
+      lastWeekHtml += '<div class="weekly-item">'
+        + '<span class="weekly-item-dot" style="background:#F59E0B"></span>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div class="weekly-item-text" title="' + escHtml(entry.task.title) + '">' + escHtml(entry.task.title) + '</div>'
+        + '<div class="weekly-note-text" title="' + escHtml(lastNote.text) + '">' + escHtml(lastNote.text) + '</div>'
+        + '</div></div>';
+    });
+  }
+
+  /* ── ON HOLD: tasks with due dates this week or overdue that are blocked ── */
+  var onHoldRelevant = tasks.filter(function(t) {
+    if (!t.onHold || !t.due) return false;
+    return new Date(t.due + 'T12:00:00') <= thisWeek.end;
+  });
+
+  var holdHtml = '';
+  if (onHoldRelevant.length) {
+    holdHtml = '<div class="weekly-sub" style="margin-top:14px"><span class="weekly-sub-dot" style="background:#F59E0B"></span>Blocked / On Hold</div>';
+    onHoldRelevant.forEach(function(t) {
+      var isOverdue = new Date(t.due + 'T12:00:00') < thisWeek.start;
+      var lastNote = t.notes && t.notes.length ? t.notes[t.notes.length - 1] : null;
+      var reason = lastNote ? lastNote.text : 'No reason recorded';
+      holdHtml += '<div class="weekly-item">'
+        + '<span class="weekly-item-dot" style="background:#F59E0B"></span>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div class="weekly-item-text" style="color:#F59E0B" title="' + escHtml(t.title) + '">'
+        + (isOverdue ? '&#9888; ' : '') + escHtml(t.title) + '</div>'
+        + '<div class="weekly-note-text" title="' + escHtml(reason) + '">' + escHtml(reason) + '</div>'
+        + '</div></div>';
+    });
+  }
+
+  panel.innerHTML = upcomingHtml + holdHtml + lastWeekHtml;
+}
+
+function buildStandupText() {
+  var thisWeek = getWorkWeekBounds(0);
+  var lastWeek = getWorkWeekBounds(-1);
+  var lwStart = lastWeek.start, lwEnd = lastWeek.end;
+  var lines = [];
+
+  lines.push('=== LAST WEEK ===');
+  var completedLW = tasks.filter(function(t) {
+    if (t.column !== 'done') return false;
+    if (t.completedAt) { var ca = new Date(t.completedAt); return ca >= lwStart && ca <= lwEnd; }
+    if (t.due) { var d = new Date(t.due + 'T12:00:00'); return d >= lwStart && d <= lwEnd; }
+    return false;
+  });
+  completedLW.forEach(function(t) { lines.push('  [done] ' + t.title); });
+
+  tasks.forEach(function(t) {
+    var recentNotes = (t.notes || []).filter(function(n){ var nd = new Date(n.ts); return nd >= lwStart && nd <= lwEnd; });
+    if (!recentNotes.length) return;
+    var alreadyDone = completedLW.some(function(c){ return c.id === t.id; });
+    if (alreadyDone) return;
+    lines.push('  [update] ' + t.title);
+    recentNotes.forEach(function(n){ lines.push('    - ' + n.text); });
+  });
+  if (completedLW.length === 0 && lines.length === 1) lines.push('  No completed tasks or updates recorded.');
+
+  lines.push('');
+  lines.push('=== THIS WEEK ===');
+  var upcoming = tasks.filter(function(t) {
+    if (t.column === 'done' || t.onHold) return false;
+    if (!t.due) return false;
+    var d = new Date(t.due + 'T12:00:00');
+    return d >= thisWeek.start && d <= thisWeek.end;
+  });
+  var byDay = {};
+  upcoming.forEach(function(t){ if (!byDay[t.due]) byDay[t.due] = []; byDay[t.due].push(t); });
+  Object.keys(byDay).sort().forEach(function(day) {
+    lines.push('  ' + dayLabel(day) + ':');
+    byDay[day].forEach(function(t){ lines.push('    - ' + t.title); });
+  });
+  if (!upcoming.length) lines.push('  No tasks scheduled this week.');
+
+  var onHoldItems = tasks.filter(function(t) {
+    if (!t.onHold || !t.due) return false;
+    return new Date(t.due + 'T12:00:00') <= thisWeek.end;
+  });
+  if (onHoldItems.length) {
+    lines.push('');
+    lines.push('=== BLOCKED / ON HOLD ===');
+    onHoldItems.forEach(function(t) {
+      var lastNote = t.notes && t.notes.length ? t.notes[t.notes.length - 1] : null;
+      lines.push('  [on hold] ' + t.title);
+      lines.push('    Reason: ' + (lastNote ? lastNote.text : 'No reason recorded'));
+    });
+  }
+
+  return lines.join('\n');
+}
 
 /* ── Tooltip engine ── */
 var tip = document.createElement('div');
@@ -1866,6 +2222,16 @@ document.querySelectorAll('.sidebar-filter[data-filter]').forEach(function(btn) 
   });
 });
 document.getElementById('settings-btn').addEventListener('click', openApiModal);
+document.getElementById('weekly-copy-btn').addEventListener('click', function() {
+  var text = buildStandupText();
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.getElementById('weekly-copy-btn');
+    var orig = btn.innerHTML;
+    btn.innerHTML = '<i class="ti ti-check"></i> Copied!';
+    btn.style.color = 'var(--col-done)';
+    setTimeout(function(){ btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+});
 document.getElementById('modal-cancel').addEventListener('click', closeApiModal);
 document.getElementById('modal-overlay').addEventListener('click', function(e) {
   if (e.target === e.currentTarget) closeApiModal();
