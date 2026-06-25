@@ -1,23 +1,21 @@
 appId: com.flowboard.app
 productName: Flowboard
 copyright: "Copyright © 2025 Flowboard"
+icon: assets/icon.ico
 
 directories:
   output: dist
-  buildResources: assets
 
 files:
   - main.js
   - preload.js
   - src/**
   - assets/**
-  - "!assets/icon.png"
   - "!**/*.map"
 
 win:
   target: nsis
-  icon: assets/icon.ico
-  publisherName: Flowboard
+  requestedExecutionLevel: asInvoker
 
 nsis:
   oneClick: false
