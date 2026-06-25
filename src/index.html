@@ -534,6 +534,64 @@ body.light .stack-children { border-left-color:var(--border2); }
 #weekly-copy-btn:hover { background:var(--surface2); color:var(--text); }
 #weekly-copy-btn i { font-size:12px; }
 
+
+/* LAUNCH ANIMATION */
+#launch-overlay {
+  position:fixed; inset:0; z-index:9999;
+  display:flex; align-items:center; justify-content:center;
+  pointer-events:none;
+}
+#launch-overlay.done { display:none; }
+
+/* Blurred backdrop — covers the board */
+#launch-blur {
+  position:absolute; inset:0;
+  background:var(--bg);
+  backdrop-filter:blur(0px);
+  -webkit-backdrop-filter:blur(0px);
+  opacity:1;
+  transition:backdrop-filter 0.9s ease-out, -webkit-backdrop-filter 0.9s ease-out, opacity 0.9s ease-out;
+}
+#launch-blur.revealing {
+  backdrop-filter:blur(0px);
+  -webkit-backdrop-filter:blur(0px);
+  opacity:0;
+}
+
+/* Blurred board layer behind overlay */
+#layout, #cmd-zone {
+  transition:filter 0.9s ease-out;
+}
+body.launching #layout,
+body.launching #cmd-zone {
+  filter:blur(18px) brightness(0.85);
+}
+body.launching.reveal #layout,
+body.launching.reveal #cmd-zone {
+  filter:blur(0px) brightness(1);
+}
+
+/* Logo in center */
+#launch-logo {
+  position:relative; z-index:1;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  opacity:1;
+  transition:opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+#launch-logo.hiding {
+  opacity:0;
+  transform:scale(1.06);
+}
+#launch-logo img {
+  width:120px; height:120px;
+  filter:drop-shadow(0 8px 32px rgba(91,82,232,0.45)) drop-shadow(0 2px 8px rgba(0,0,0,0.2));
+}
+#launch-logo-name {
+  font-size:28px; font-weight:700; letter-spacing:-0.5px;
+  color:var(--text); display:flex; align-items:center; gap:4px;
+}
+#launch-logo-name .flow { color:var(--accent); }
+
 /* TOOLTIP */
 .fb-tooltip { position:fixed; z-index:9999; pointer-events:none; background:#0a0c13; border:0.5px solid var(--border2); color:var(--text); font-size:11px; font-family:'Inter',sans-serif; padding:4px 9px; border-radius:5px; white-space:nowrap; opacity:0; transition:opacity 0.12s; }
 .fb-tooltip.visible { opacity:1; }
@@ -545,7 +603,7 @@ body.light .stack-children { border-left-color:var(--border2); }
 
 <div id="titlebar">
   <div id="titlebar-left">
-    <div id="app-logo"><i class="ti ti-layout-kanban"></i><span>Flow</span>board</div>
+    <div id="app-logo"><span>Flow</span><img src="../assets/icon-light.png" id="logo-img" height="26" style="display:block;margin:0 1px;image-rendering:auto;opacity:0.92" draggable="false" alt=""><span style="color:var(--text)">board</span></div>
     <div id="app-version" style="font-size:10px;color:var(--text-dim);letter-spacing:0.04em;user-select:none;"></div>
   </div>
   <div id="titlebar-right">
@@ -581,6 +639,16 @@ body.light .stack-children { border-left-color:var(--border2); }
         <line x1="8" y1="0" x2="0" y2="8" stroke="currentColor" stroke-width="1.25"/>
       </svg>
     </button>
+  </div>
+</div>
+
+
+<!-- Launch animation overlay -->
+<div id="launch-overlay">
+  <div id="launch-blur"></div>
+  <div id="launch-logo">
+    <img src="../assets/icon-light.png" alt="Flowboard" draggable="false">
+    <div id="launch-logo-name"><span class="flow">Flow</span><span>board</span></div>
   </div>
 </div>
 
@@ -687,7 +755,7 @@ body.light .stack-children { border-left-color:var(--border2); }
     <div id="cmd-zone">
       <div id="cmd-wrap">
         <textarea id="cmd-input" rows="1" placeholder='Describe a task — e.g. "Finish the budget report by end of week, urgent" — and press Enter'></textarea>
-        <button id="cmd-btn" data-tip="Add task"><i class="ti ti-arrow-up"></i></button>
+        <button id="cmd-btn" data-tip="Add task"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
       <div id="cmd-status"></div>
       <div id="cmd-hint">Press Enter to add · Shift+Enter for new line · drag cards between columns</div>
@@ -1324,7 +1392,7 @@ async function addTask() {
   if (!config.apiKey) { openApiModal(); return; }
 
   btn.disabled = true;
-  btn.innerHTML = '<i class="ti ti-loader spin"></i>';
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="spin"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.6" stroke-dasharray="28 10" stroke-linecap="round"/></svg>';
   status.textContent = 'Parsing your task...';
   input.disabled = true;
 
@@ -1396,7 +1464,7 @@ async function addTask() {
       input.value = ''; input.style.height = 'auto';
       status.textContent = matched ? 'Note added to "' + matched + '"' : 'Could not find task "' + parsed.targetTitle + '"';
       setTimeout(function(){ status.textContent = ''; }, 4000);
-      btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-up"></i>';
+      btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       input.disabled = false; input.focus();
       return;
     }
@@ -1413,7 +1481,7 @@ async function addTask() {
       input.value = ''; input.style.height = 'auto';
       status.textContent = 'Created stack "' + parent.title + '" with ' + children.length + ' subtasks';
       setTimeout(function(){ status.textContent = ''; }, 5000);
-      btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-up"></i>';
+      btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       input.disabled = false; input.focus();
       return;
     }
@@ -1425,7 +1493,7 @@ async function addTask() {
       if (!parentTask) {
         status.textContent = 'Could not find task "' + parsed.targetTitle + '"';
         setTimeout(function(){ status.textContent = ''; }, 4000);
-        btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-up"></i>';
+        btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         input.disabled = false; input.focus();
         return;
       }
@@ -1438,7 +1506,7 @@ async function addTask() {
       input.value = ''; input.style.height = 'auto';
       status.textContent = 'Stack created for "' + parentTask.title + '" with ' + newChildren.length + ' subtasks';
       setTimeout(function(){ status.textContent = ''; }, 5000);
-      btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-up"></i>';
+      btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       input.disabled = false; input.focus();
       return;
     }
@@ -1450,7 +1518,7 @@ async function addTask() {
       if (!stackParent) {
         status.textContent = 'Could not find stack "' + parsed.targetTitle + '"';
         setTimeout(function(){ status.textContent = ''; }, 4000);
-        btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-up"></i>';
+        btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         input.disabled = false; input.focus();
         return;
       }
@@ -1463,7 +1531,7 @@ async function addTask() {
       input.value = ''; input.style.height = 'auto';
       status.textContent = 'Added ' + addedChildren.length + ' subtask' + (addedChildren.length !== 1 ? 's' : '') + ' to "' + stackParent.title + '"';
       setTimeout(function(){ status.textContent = ''; }, 5000);
-      btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-up"></i>';
+      btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       input.disabled = false; input.focus();
       return;
     }
@@ -1486,7 +1554,7 @@ async function addTask() {
   }
 
   btn.disabled = false;
-  btn.innerHTML = '<i class="ti ti-arrow-up"></i>';
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   input.disabled = false;
   input.focus();
 }
@@ -1612,7 +1680,7 @@ async function suggestTags() {
   var btn = document.getElementById('suggest-btn');
   var area = document.getElementById('suggestions-area');
   btn.disabled = true;
-  btn.innerHTML = '<i class="ti ti-loader spin"></i> Analyzing your board...';
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="spin"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.6" stroke-dasharray="28 10" stroke-linecap="round"/></svg> Analyzing your board...';
   area.innerHTML = '';
 
   var taskSummary = tasks.map(function(t){
@@ -1800,6 +1868,7 @@ function applyTheme(theme) {
   if (window.flowboard && window.flowboard.setThemeIcon) {
     window.flowboard.setThemeIcon(theme);
   }
+  /* Logo image: always use icon-light.png since we have one universal icon now */
   /* Re-render so inline tag styles update to the new palette */
   if (tasks.length) renderBoard();
   /* If tag drawer is open, re-render its lists too */
@@ -2197,6 +2266,28 @@ function buildStandupText() {
 
   return lines.join('\n');
 }
+
+
+/* ── Launch animation ── */
+(function() {
+  document.body.classList.add('launching');
+
+  /* After a short hold, start the reveal */
+  setTimeout(function() {
+    document.body.classList.add('reveal');
+    var logo = document.getElementById('launch-logo');
+    var blur = document.getElementById('launch-blur');
+    if (logo) logo.classList.add('hiding');
+    if (blur) blur.classList.add('revealing');
+
+    /* Remove overlay entirely after transition completes */
+    setTimeout(function() {
+      var overlay = document.getElementById('launch-overlay');
+      if (overlay) overlay.classList.add('done');
+      document.body.classList.remove('launching', 'reveal');
+    }, 950);
+  }, 900);
+})();
 
 /* ── Tooltip engine ── */
 var tip = document.createElement('div');
