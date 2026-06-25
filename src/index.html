@@ -295,6 +295,96 @@ body.light #board::-webkit-scrollbar-thumb { background:#CBD5E1; }
 body.light #sidebar::-webkit-scrollbar-thumb { background:#CBD5E1; }
 body.light .column.drag-over { background:rgba(91,82,232,0.04); }
 
+
+/* NOTES BUBBLE */
+#notes-bubble {
+  position:fixed; z-index:200; width:300px;
+  background:var(--surface); border:0.5px solid var(--border2);
+  border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.35);
+  display:none; flex-direction:column;
+  transition:opacity 0.12s, transform 0.12s;
+  opacity:0; transform:scale(0.96) translateX(-4px);
+}
+#notes-bubble.open {
+  display:flex; opacity:1; transform:scale(1) translateX(0);
+}
+/* Arrow pointing left toward the card button */
+#notes-bubble::before {
+  content:'';
+  position:absolute; left:-8px; top:18px;
+  width:0; height:0;
+  border-top:8px solid transparent;
+  border-bottom:8px solid transparent;
+  border-right:8px solid var(--border2);
+}
+#notes-bubble::after {
+  content:'';
+  position:absolute; left:-6.5px; top:19px;
+  width:0; height:0;
+  border-top:7px solid transparent;
+  border-bottom:7px solid transparent;
+  border-right:7px solid var(--surface);
+}
+#notes-bubble-header {
+  padding:10px 12px 8px; border-bottom:0.5px solid var(--border);
+  display:flex; align-items:center; gap:8px; flex-shrink:0;
+}
+#notes-bubble-title {
+  font-size:12px; font-weight:600; color:var(--text); flex:1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+#notes-bubble-close {
+  background:none; border:none; color:var(--text-muted); cursor:pointer;
+  width:24px; height:24px; display:flex; align-items:center; justify-content:center;
+  border-radius:4px; transition:background 0.1s,color 0.1s; flex-shrink:0;
+}
+#notes-bubble-close:hover { background:var(--surface3); color:var(--text); }
+#notes-log {
+  flex:1; overflow-y:auto; padding:10px 12px;
+  display:flex; flex-direction:column; gap:8px;
+  max-height:220px; min-height:40px;
+}
+#notes-log::-webkit-scrollbar { width:3px; }
+#notes-log::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:2px; }
+.note-entry {
+  border-left:2px solid var(--accent); padding:4px 0 4px 9px;
+}
+.note-ts { font-size:10px; color:var(--text-dim); margin-bottom:2px; }
+.note-text { font-size:12px; color:var(--text); line-height:1.5; white-space:pre-wrap; }
+#notes-empty { font-size:11px; color:var(--text-dim); text-align:center; padding:10px 0; }
+#notes-input-row { padding:8px 12px 10px; border-top:0.5px solid var(--border); display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
+#notes-textarea {
+  width:100%; background:var(--surface2); border:0.5px solid var(--border2);
+  border-radius:7px; color:var(--text); font-size:12px; padding:7px 9px;
+  resize:none; outline:none; font-family:inherit; line-height:1.5; height:62px;
+  transition:border-color 0.15s;
+}
+#notes-textarea:focus { border-color:var(--accent); }
+#notes-textarea::placeholder { color:var(--text-dim); }
+#notes-save {
+  background:var(--accent); border:none; border-radius:6px; color:#fff;
+  font-size:11px; font-weight:600; padding:5px 14px; cursor:pointer; align-self:flex-end;
+  transition:opacity 0.15s;
+}
+#notes-save:hover { opacity:0.88; }
+/* Notes indicator dot on card button */
+.card-btn.has-notes .notes-dot {
+  width:5px; height:5px; border-radius:50%; background:var(--accent);
+  flex-shrink:0;
+}
+
+#notes-bubble.flip-left::before {
+  left:auto; right:-8px;
+  border-right:none; border-left:8px solid var(--border2);
+}
+#notes-bubble.flip-left::after {
+  left:auto; right:-6.5px;
+  border-right:none; border-left:7px solid var(--surface);
+}
+
+body.light #notes-bubble { box-shadow:0 8px 32px rgba(0,0,0,0.15); }
+body.light #notes-bubble::after { border-right-color:var(--surface); }
+
 /* TOOLTIP */
 .fb-tooltip { position:fixed; z-index:9999; pointer-events:none; background:#0a0c13; border:0.5px solid var(--border2); color:var(--text); font-size:11px; font-family:'Inter',sans-serif; padding:4px 9px; border-radius:5px; white-space:nowrap; opacity:0; transition:opacity 0.12s; }
 .fb-tooltip.visible { opacity:1; }
@@ -445,6 +535,25 @@ body.light .column.drag-over { background:rgba(91,82,232,0.04); }
       <button class="btn-secondary" id="modal-cancel">Cancel</button>
       <button class="btn-primary" id="modal-save">Save Key</button>
     </div>
+  </div>
+</div>
+
+<!-- Notes Bubble -->
+<div id="notes-bubble" role="dialog" aria-label="Task notes">
+  <div id="notes-bubble-header">
+    <i class="ti ti-notes" style="color:var(--accent);font-size:14px;flex-shrink:0"></i>
+    <div id="notes-bubble-title">Notes</div>
+    <button id="notes-bubble-close" data-tip="Close notes" aria-label="Close">
+      <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+        <line x1="0" y1="0" x2="8" y2="8" stroke="currentColor" stroke-width="1.25"/>
+        <line x1="8" y1="0" x2="0" y2="8" stroke="currentColor" stroke-width="1.25"/>
+      </svg>
+    </button>
+  </div>
+  <div id="notes-log"></div>
+  <div id="notes-input-row">
+    <textarea id="notes-textarea" placeholder="Add a progress note..."></textarea>
+    <button id="notes-save" data-tip="Save note">Save Note</button>
   </div>
 </div>
 
@@ -735,6 +844,10 @@ function renderCard(t) {
   if (due) metaHtml += '<div class="card-due ' + due.cls + '"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</div>';
   var metaRow = metaHtml ? '<div class="card-meta">' + metaHtml + '</div>' : '';
 
+  var noteCount = (t.notes || []).length;
+  var noteDot = noteCount ? '<span class="notes-dot" aria-hidden="true"></span>' : '';
+  var noteTip = noteCount ? 'Notes (' + noteCount + ')' : 'Add notes';
+
   return '<div class="card' + holdCls + doneCls + '" data-id="' + escHtml(t.id) + '" draggable="true">'
     + '<div class="card-bar" style="background:' + bar + '"></div>'
     + '<div class="card-title">' + escHtml(t.title) + '</div>'
@@ -746,6 +859,8 @@ function renderCard(t) {
     + '<i class="ti ti-circle-check"></i><span class="card-btn-label">' + completeLabel + '</span></button>'
     + '<button class="card-btn' + holdActiveCls + '" onclick="toggleHold(\'' + t.id + '\')" data-tip="' + holdTip + '">'
     + '<i class="ti ti-player-pause"></i><span class="card-btn-label">' + holdLabel + '</span></button>'
+    + '<button class="card-btn notes-btn' + (noteCount ? ' has-notes' : '') + '" onclick="openNotes(event,\'' + t.id + '\')" data-tip="' + noteTip + '">'
+    + '<i class="ti ti-notes"></i>' + noteDot + '</button>'
     + '<button class="card-btn del" onclick="deleteTask(\'' + t.id + '\')" data-tip="Delete this task">'
     + '<i class="ti ti-trash"></i><span class="card-btn-label">Delete</span></button>'
     + '</div></div>';
@@ -958,11 +1073,27 @@ async function addTask() {
     + 'COLUMN RULES: "progress" if actively working on it, "next" if high/critical priority or due within a week, '
     + '"backlog" if low/medium with no near deadline, "done" if completed.\n\n'
     + 'Preferred tags (use when they fit): ' + knownTags + '\n'
-    + 'You may create new tags if none fit. Keep tags lowercase, use hyphens for spaces.';
+    + 'You may create new tags if none fit. Keep tags lowercase, use hyphens for spaces.\n\n'
+    + 'NOTE ACTION: If the user is adding a progress note or update to an existing task (e.g. "add note to X: ...", '
+    + '"update task X with ...", "log progress on X: ..."), return a SINGLE JSON object (not an array):\n'
+    + '  { "action": "note", "targetTitle": "partial task title to match", "note": "the note text" }\n'
+    + 'Current task titles for reference: ' + tasks.map(function(t){ return '"' + t.title + '"'; }).join(', ');
 
   try {
     var raw = await window.flowboard.callAnthropic({ apiKey: config.apiKey, prompt: text, system: systemPrompt });
     var parsed = JSON.parse(raw);
+
+    /* Check if this is a note action rather than new tasks */
+    if (!Array.isArray(parsed) && parsed.action === 'note') {
+      var matched = await addNoteToTask(parsed.targetTitle, parsed.note);
+      input.value = ''; input.style.height = 'auto';
+      status.textContent = matched ? 'Note added to "' + matched + '"' : 'Could not find task "' + parsed.targetTitle + '"';
+      setTimeout(function(){ status.textContent = ''; }, 4000);
+      btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-up"></i>';
+      input.disabled = false; input.focus();
+      return;
+    }
+
     var arr = Array.isArray(parsed) ? parsed : [parsed];
     var newTasks = arr.map(function(t) {
       /* register any new tags */
@@ -972,7 +1103,7 @@ async function addTask() {
           tagDefs[k] = nextColor();
         }
       });
-      return Object.assign({}, t, { onHold:false, id:Date.now().toString(36)+Math.random().toString(36).slice(2) });
+      return Object.assign({}, t, { onHold:false, notes:[], id:Date.now().toString(36)+Math.random().toString(36).slice(2) });
     });
     await saveTags();
     tasks = tasks.concat(newTasks);
@@ -1312,6 +1443,120 @@ async function toggleTheme() {
   applyTheme(config.theme);
   await window.flowboard.saveConfig(config);
 }
+
+
+/* ── Notes bubble ── */
+var notesTaskId = null;
+
+window.openNotes = function(e, id) {
+  e.stopPropagation();
+  var task = tasks.find(function(t){ return t.id === id; });
+  if (!task) return;
+
+  var bubble = document.getElementById('notes-bubble');
+
+  /* If already open for this task, close it */
+  if (bubble.classList.contains('open') && notesTaskId === id) {
+    closeNotes();
+    return;
+  }
+
+  notesTaskId = id;
+  document.getElementById('notes-bubble-title').textContent = task.title;
+  renderNotesList(task);
+  document.getElementById('notes-textarea').value = '';
+
+  /* Position: right of the clicked button, vertically centered on it */
+  var btn = e.currentTarget;
+  var rect = btn.getBoundingClientRect();
+  var bw = 300, bh = 360;
+  var top = rect.top - 18; /* align arrow with button */
+  var left = rect.right + 10;
+
+  /* Flip left if not enough room on right */
+  if (left + bw > window.innerWidth - 12) {
+    left = rect.left - bw - 10;
+    /* Arrow flips to right side */
+    bubble.classList.add('flip-left');
+  } else {
+    bubble.classList.remove('flip-left');
+  }
+
+  /* Clamp vertical */
+  if (top + bh > window.innerHeight - 12) top = window.innerHeight - bh - 12;
+  if (top < 8) top = 8;
+
+  bubble.style.top  = top + 'px';
+  bubble.style.left = left + 'px';
+  bubble.classList.add('open');
+  setTimeout(function(){ document.getElementById('notes-textarea').focus(); }, 60);
+};
+
+function closeNotes() {
+  document.getElementById('notes-bubble').classList.remove('open');
+  notesTaskId = null;
+}
+
+function renderNotesList(task) {
+  var log = document.getElementById('notes-log');
+  var notes = task.notes || [];
+  if (!notes.length) {
+    log.innerHTML = '<div id="notes-empty">No notes yet. Add your first progress note below.</div>';
+    return;
+  }
+  log.innerHTML = notes.slice().reverse().map(function(n) {
+    var d = new Date(n.ts);
+    var label = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+      + ' ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    return '<div class="note-entry">'
+      + '<div class="note-ts">' + label + '</div>'
+      + '<div class="note-text">' + escHtml(n.text) + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+async function saveNote() {
+  var text = document.getElementById('notes-textarea').value.trim();
+  if (!text || !notesTaskId) return;
+  var task = tasks.find(function(t){ return t.id === notesTaskId; });
+  if (!task) return;
+  if (!task.notes) task.notes = [];
+  task.notes.push({ text: text, ts: new Date().toISOString() });
+  await window.flowboard.saveTasks(tasks);
+  renderNotesList(task);
+  document.getElementById('notes-textarea').value = '';
+  renderBoard(); /* update note count dot */
+}
+
+/* Add a note to a task by title match (used by command bar) */
+async function addNoteToTask(titleQuery, noteText) {
+  var q = titleQuery.toLowerCase();
+  var task = tasks.find(function(t){ return t.title.toLowerCase().indexOf(q) !== -1; });
+  if (!task) return null;
+  if (!task.notes) task.notes = [];
+  task.notes.push({ text: noteText, ts: new Date().toISOString() });
+  await window.flowboard.saveTasks(tasks);
+  renderBoard();
+  return task.title;
+}
+
+document.getElementById('notes-save').addEventListener('click', saveNote);
+document.getElementById('notes-textarea').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveNote(); }
+});
+document.getElementById('notes-bubble-close').addEventListener('click', closeNotes);
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeNotes();
+});
+document.addEventListener('mousedown', function(e) {
+  var bubble = document.getElementById('notes-bubble');
+  if (bubble.classList.contains('open') && !bubble.contains(e.target)) {
+    /* Don't close if clicking another notes button — openNotes handles toggle */
+    if (!e.target.closest('.notes-btn')) closeNotes();
+  }
+});
+
+/* Flipped arrow (bubble opens to the left of the card) */
 
 /* ── Tooltip engine ── */
 var tip = document.createElement('div');
