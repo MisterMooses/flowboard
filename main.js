@@ -65,23 +65,9 @@ ipcMain.handle('window-maximize', () => {
 });
 ipcMain.handle('window-close', () => mainWindow.close());
 
-ipcMain.handle('call-anthropic', async (_, { apiKey, prompt }) => {
+ipcMain.handle('call-anthropic', async (_, { apiKey, prompt, system }) => {
   return new Promise((resolve, reject) => {
-    const today = new Date().toISOString().split('T')[0];
-    const systemPrompt = `You are a task parser for a Kanban board. Given natural language input, extract one or more tasks and return ONLY a JSON array. No preamble, no markdown, just raw JSON.
-
-Each task object must have:
-- "title": string (concise task name, max 80 chars)
-- "column": one of "backlog" | "next" | "progress" | "done"
-  - Use "progress" if the user says they are actively working on it
-  - Use "next" for high priority or tasks due soon (within a week)
-  - Use "backlog" for low priority or no clear deadline
-  - Use "done" if they say it is completed
-- "priority": one of "low" | "medium" | "high" | "critical"
-- "due": ISO date string (YYYY-MM-DD) if mentioned, else null. Today is ${today}. Interpret relative dates (tomorrow, next Monday, end of week, etc.)
-- "tags": array of 1-3 tags from: work, design, meeting, research, writing, planning, review, email, code, admin, personal, finance, health, learning, urgent, other
-
-Be smart about inferring priority and column from context. Multiple tasks can come from one input.`;
+    const systemPrompt = system || 'Return only valid JSON. No markdown, no preamble.';
 
     const body = JSON.stringify({
       model: 'claude-sonnet-4-6',
