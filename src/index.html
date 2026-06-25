@@ -130,6 +130,7 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
   display:flex; align-items:center; gap:3px;
   transition:color 0.12s, background 0.12s; flex-shrink:0;
 }
+.card-btn-notes i, .card-btn-del i { font-family:tabler-icons !important; font-size:14px; }
 .card-btn-notes:hover { color:var(--accent); background:var(--accent-dim); }
 .card-btn-notes.has-notes { color:var(--accent); }
 .card-actions { display:flex; align-items:center; gap:4px; margin-top:7px; padding-top:7px; border-top:0.5px solid var(--border); }
@@ -869,7 +870,7 @@ function renderCard(t) {
   var metaRow = '<div class="card-meta">'
     + '<div class="card-meta-left">' + metaLeft + '</div>'
     + '<button class="' + notesBtnCls + '" onclick="openNotes(event,\'' + t.id + '\')" data-tip="' + noteTip + '">'
-    + '<i class="ti ti-file-text"></i>' + noteDot + '</button>'
+    + '<i class="ti ti-notebook" style="font-size:14px;line-height:1;font-family:tabler-icons"></i>' + noteDot + '</button>'
     + '</div>';
 
   return '<div class="card' + holdCls + doneCls + '" data-id="' + escHtml(t.id) + '" draggable="true">'
@@ -884,7 +885,7 @@ function renderCard(t) {
     + '<button class="card-btn' + holdActiveCls + '" onclick="toggleHold(\'' + t.id + '\')" data-tip="' + holdTip + '">'
     + '<i class="ti ti-player-pause"></i><span class="card-btn-label">' + holdLabel + '</span></button>'
     + '<button class="card-btn-del" onclick="deleteTask(\'' + t.id + '\')" data-tip="Delete this task">'
-    + '<i class="ti ti-trash"></i></button>'
+    + '<i class="ti ti-trash" style="font-size:14px;line-height:1"></i></button>'
     + '</div></div>';
 }
 
