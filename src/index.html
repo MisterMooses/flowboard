@@ -32,15 +32,22 @@ html, body { height: 100%; overflow: hidden; }
 body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-system,sans-serif; font-size:13px; display:flex; flex-direction:column; user-select:none; }
 
 /* TITLEBAR */
-#titlebar { height:var(--titlebar-h); background:var(--surface); border-bottom:0.5px solid var(--border); display:flex; align-items:center; -webkit-app-region:drag; flex-shrink:0; padding:0 12px; }
+#titlebar { height:var(--titlebar-h); background:var(--surface); border-bottom:0.5px solid var(--border); display:flex; align-items:center; -webkit-app-region:drag; flex-shrink:0; padding:0 0 0 12px; }
 #titlebar-left { display:flex; align-items:center; gap:8px; flex:1; }
 #app-logo { font-size:15px; font-weight:600; letter-spacing:-0.3px; color:var(--text); display:flex; align-items:center; gap:6px; }
 #app-logo span { color:var(--accent); }
 #titlebar-center { flex:1; text-align:center; font-size:11px; color:var(--text-dim); letter-spacing:0.05em; text-transform:uppercase; }
-#titlebar-right { flex:1; display:flex; justify-content:flex-end; align-items:center; gap:2px; -webkit-app-region:no-drag; }
-.win-btn { width:32px; height:28px; border:none; background:none; cursor:pointer; border-radius:4px; color:var(--text-muted); font-size:14px; display:flex; align-items:center; justify-content:center; transition:background 0.15s,color 0.15s; }
-.win-btn:hover { background:var(--surface2); color:var(--text); }
-#btn-close:hover { background:var(--danger); color:#fff; }
+#titlebar-right { display:flex; align-items:stretch; -webkit-app-region:no-drag; height:var(--titlebar-h); }
+.win-btn {
+  width:46px; height:100%; border:none; background:none; cursor:pointer;
+  color:var(--text-muted); display:flex; align-items:center; justify-content:center;
+  transition:background 0.1s, color 0.1s; flex-shrink:0;
+}
+.win-btn:hover { background:rgba(255,255,255,0.08); color:var(--text); }
+.win-btn:active { background:rgba(255,255,255,0.05); }
+#btn-close:hover { background:#c42b1c; color:#fff; }
+#btn-close:active { background:#b52516; }
+.win-btn svg { display:block; pointer-events:none; }
 
 /* LAYOUT */
 #layout { display:flex; flex:1; overflow:hidden; }
@@ -261,9 +268,26 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
   </div>
   <div id="titlebar-center">Personal Kanban</div>
   <div id="titlebar-right">
-    <button class="win-btn" id="btn-min" data-tip="Minimize"><i class="ti ti-minus"></i></button>
-    <button class="win-btn" id="btn-max" data-tip="Maximize"><i class="ti ti-square"></i></button>
-    <button class="win-btn" id="btn-close" data-tip="Close"><i class="ti ti-x"></i></button>
+    <button class="win-btn" id="btn-min" data-tip="Minimize" aria-label="Minimize">
+      <svg width="10" height="1" viewBox="0 0 10 1" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="0" y1="0.5" x2="10" y2="0.5" stroke="currentColor" stroke-width="1"/>
+      </svg>
+    </button>
+    <button class="win-btn" id="btn-max" data-tip="Maximize" aria-label="Maximize">
+      <svg id="icon-max" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0.5" y="0.5" width="9" height="9" stroke="currentColor" stroke-width="1"/>
+      </svg>
+      <svg id="icon-restore" width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none">
+        <rect x="2.5" y="0.5" width="8" height="8" stroke="currentColor" stroke-width="1"/>
+        <path d="M0.5 2.5 L0.5 10.5 L8.5 10.5" stroke="currentColor" stroke-width="1" fill="none"/>
+      </svg>
+    </button>
+    <button class="win-btn" id="btn-close" data-tip="Close" aria-label="Close">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1"/>
+        <line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1"/>
+      </svg>
+    </button>
   </div>
 </div>
 
@@ -1209,7 +1233,16 @@ document.getElementById('tag-new-input').addEventListener('keydown', function(e)
 });
 document.getElementById('suggest-btn').addEventListener('click', suggestTags);
 document.getElementById('btn-min').addEventListener('click', function(){ window.flowboard.minimize(); });
-document.getElementById('btn-max').addEventListener('click', function(){ window.flowboard.maximize(); });
+document.getElementById('btn-max').addEventListener('click', function(){
+  window.flowboard.maximize();
+});
+/* Update maximize/restore icon based on window state */
+window.flowboard.onMaximizeChange && window.flowboard.onMaximizeChange(function(isMax) {
+  document.getElementById('icon-max').style.display = isMax ? 'none' : 'block';
+  document.getElementById('icon-restore').style.display = isMax ? 'block' : 'none';
+  document.getElementById('btn-max').setAttribute('data-tip', isMax ? 'Restore' : 'Maximize');
+  document.getElementById('btn-max').setAttribute('aria-label', isMax ? 'Restore' : 'Maximize');
+});
 document.getElementById('btn-close').addEventListener('click', function(){ window.flowboard.close(); });
 
 init();

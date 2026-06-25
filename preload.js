@@ -9,4 +9,8 @@ contextBridge.exposeInMainWorld('flowboard', {
   minimize: () => ipcRenderer.invoke('window-minimize'),
   maximize: () => ipcRenderer.invoke('window-maximize'),
   close: () => ipcRenderer.invoke('window-close'),
+  onMaximizeChange: (cb) => {
+    ipcRenderer.on('window-maximized', () => cb(true));
+    ipcRenderer.on('window-unmaximized', () => cb(false));
+  },
 });
