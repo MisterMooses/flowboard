@@ -1038,14 +1038,21 @@ function renderTagLists() {
     }).join('');
   }
 
+  /* Tags found on tasks but not in tagDefs — either built-in defaults or
+     orphaned legacy tags. Show with delete option so user can clean them up. */
   var builtinInUse = Object.keys(counts).filter(function(n){ return !tagDefs[n]; });
   if (builtinInUse.length) {
     inUseEl.innerHTML += builtinInUse.map(function(name) {
-      var s = DEFAULT_TAGS[name] || DEFAULT_TAGS.other;
+      var s = tagStyleObj(name);
+      var isBuiltin = !!DEFAULT_TAGS[name];
+      var label = isBuiltin
+        ? escHtml(name) + ' <span style="font-size:10px;color:var(--text-dim)">(built-in)</span>'
+        : escHtml(name) + ' <span style="font-size:10px;color:var(--text-dim)">(orphaned)</span>';
       return '<div class="tag-row">'
         + '<span class="tag-row-pill" style="background:' + s.bg + ';color:' + s.color + '">' + escHtml(name) + '</span>'
-        + '<span class="tag-row-name">' + escHtml(name) + ' <span style="font-size:10px;color:var(--text-dim)">(built-in)</span></span>'
+        + '<span class="tag-row-name">' + label + '</span>'
         + '<span class="tag-row-count">' + counts[name] + ' task' + (counts[name] !== 1 ? 's' : '') + '</span>'
+        + '<button class="tag-row-del" onclick="deleteTag(\'' + escHtml(name) + '\')" data-tip="Remove tag from all tasks"><i class="ti ti-trash"></i> Delete</button>'
         + '</div>';
     }).join('');
   }
@@ -1250,16 +1257,31 @@ async function init() {
      grows only from tags the user actually applies to tasks. */
   tagDefs = config.tags || {};
 
-  /* Migration: remove any legacy personal tags that were previously
-     seeded into config during development. Safe no-op on new installs. */
-  var migrated = false;
+  /* Migration: remove any legacy personal tags from config and from task arrays.
+     Safe no-op on new installs or after first migration. */
+  var configMigrated = false;
   LEGACY_PERSONAL_TAGS.forEach(function(name) {
     if (tagDefs.hasOwnProperty(name)) {
       delete tagDefs[name];
-      migrated = true;
+      configMigrated = true;
     }
   });
-  if (migrated) await saveTags();
+  if (configMigrated) await saveTags();
+
+  /* Strip legacy tags from any task that still references them */
+  var tasksMigrated = false;
+  tasks = tasks.map(function(t) {
+    if (!t.tags || !t.tags.length) return t;
+    var cleaned = t.tags.filter(function(tag) {
+      return LEGACY_PERSONAL_TAGS.indexOf(tag.toLowerCase()) === -1;
+    });
+    if (cleaned.length !== t.tags.length) {
+      tasksMigrated = true;
+      return Object.assign({}, t, { tags: cleaned });
+    }
+    return t;
+  });
+  if (tasksMigrated) await window.flowboard.saveTasks(tasks);
 
   var raw = await window.flowboard.getTasks();
   tasks = raw.map(function(t){ if (t.onHold === undefined) t.onHold = false; return t; });
@@ -1278,6 +1300,10 @@ function applyTheme(theme) {
   document.getElementById('btn-theme').setAttribute('data-tip', isLight ? 'Switch to dark mode' : 'Switch to light mode');
   /* Re-render so inline tag styles update to the new palette */
   if (tasks.length) renderBoard();
+  /* If tag drawer is open, re-render its lists too */
+  if (document.getElementById('tag-drawer').classList.contains('open')) {
+    renderTagLists();
+  }
 }
 
 async function toggleTheme() {
