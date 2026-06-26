@@ -1,5 +1,9 @@
 # Flowboard Changelog
 
+## v1.5.8
+### Bug Fixes
+- **Board search now works correctly.** Three issues fixed: (1) the "On Hold" priority filter was short-circuiting the filter pipeline and ignoring the search query entirely; (2) searching for text in a child task title or tag within a stack had no effect because only the parent title was checked — stacks now surface in results when any child matches; (3) the task count badge always showed the total unfiltered count, giving no visual feedback that search was doing anything. Archived tasks continue to be excluded from board search results (use the Archive drawer's own search for those).
+
 ## v1.5.7
 ### Fixes
 - Update button now switches from a download arrow to a circular restart icon when the update has finished downloading and is ready to install.

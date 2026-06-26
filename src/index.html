@@ -1519,16 +1519,25 @@ function sortedTasks(arr) {
 function visibleTasks() {
   return tasks.filter(function(t) {
     if (t.archived) return false; /* never show archived tasks on the board */
-    if (activeFilter === 'hold') return !!t.onHold;
-    if (activeFilter !== 'all' && t.priority !== activeFilter) return false;
+    if (activeFilter === 'hold' && !t.onHold) return false;
+    if (activeFilter !== 'all' && activeFilter !== 'hold' && t.priority !== activeFilter) return false;
     if (activeTagFilter) {
       var tags = (t.tags || []).map(function(x){ return x.toLowerCase(); });
       if (tags.indexOf(activeTagFilter) === -1) return false;
     }
     if (searchQuery) {
       var q = searchQuery.toLowerCase();
-      return t.title.toLowerCase().indexOf(q) !== -1 ||
-             (t.tags || []).some(function(tag){ return tag.toLowerCase().indexOf(q) !== -1; });
+      var selfMatch = t.title.toLowerCase().indexOf(q) !== -1 ||
+                      (t.tags || []).some(function(tag){ return tag.toLowerCase().indexOf(q) !== -1; });
+      if (selfMatch) return true;
+      /* For stack parents: also match when any child title or tag matches the query */
+      if (!t.parentId) {
+        return getChildren(t.id).some(function(child) {
+          return child.title.toLowerCase().indexOf(q) !== -1 ||
+                 (child.tags || []).some(function(tag){ return tag.toLowerCase().indexOf(q) !== -1; });
+        });
+      }
+      return false;
     }
     return true;
   });
@@ -1724,7 +1733,7 @@ function renderBoard() {
     document.getElementById('stat-' + col).textContent = colCount;
   });
   document.getElementById('stat-hold').textContent = tasks.filter(function(t){ return !!t.onHold; }).length;
-  var total = tasks.filter(function(t){ return !t.parentId && !t.archived; }).length;
+  var total = visible.filter(function(t){ return !t.parentId; }).length;
   document.getElementById('task-count-badge').textContent = total + ' task' + (total !== 1 ? 's' : '');
   renderSidebarTags();
   renderWeeklySummary();
