@@ -2916,7 +2916,7 @@ document.querySelectorAll('.sidebar-filter[data-filter]').forEach(function(btn) 
   });
 });
 document.getElementById('settings-btn').addEventListener('click', openApiModal);
-document.getElementById('archive-btn').addEventListener('click', openArchiveDrawer);
+document.getElementById('archive-btn').addEventListener('click', function() { var d = document.getElementById('archive-drawer'); d.classList.contains('open') ? closeArchiveDrawer() : openArchiveDrawer(); });
 document.getElementById('archive-drawer-close').addEventListener('click', closeArchiveDrawer);
 document.getElementById('archive-search').addEventListener('input', renderArchiveDrawer);
 
