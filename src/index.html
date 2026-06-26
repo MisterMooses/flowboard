@@ -599,6 +599,109 @@ body.launching.reveal #cmd-zone {
 }
 #launch-logo-name .flow { color:var(--accent); }
 
+
+/* CALENDAR BUBBLE */
+#cal-bubble {
+  position:fixed; z-index:210; width:248px;
+  background:var(--surface); border:0.5px solid var(--border2);
+  border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.35);
+  display:none; flex-direction:column; overflow:hidden;
+  opacity:0; transform:scale(0.96) translateX(-4px);
+  transition:opacity 0.12s, transform 0.12s;
+}
+#cal-bubble.open {
+  display:flex; opacity:1; transform:scale(1) translateX(0);
+}
+#cal-bubble::before {
+  content:''; position:absolute; left:-8px; top:18px;
+  width:0; height:0;
+  border-top:8px solid transparent;
+  border-bottom:8px solid transparent;
+  border-right:8px solid var(--border2);
+}
+#cal-bubble::after {
+  content:''; position:absolute; left:-6.5px; top:19px;
+  width:0; height:0;
+  border-top:7px solid transparent;
+  border-bottom:7px solid transparent;
+  border-right:7px solid var(--surface);
+}
+#cal-bubble.flip-left::before { left:auto; right:-8px; border-right:none; border-left:8px solid var(--border2); }
+#cal-bubble.flip-left::after  { left:auto; right:-6.5px; border-right:none; border-left:7px solid var(--surface); }
+
+#cal-header {
+  display:flex; align-items:center; padding:9px 10px 8px;
+  border-bottom:0.5px solid var(--border); gap:4px;
+}
+#cal-month-label {
+  flex:1; text-align:center; font-size:12px; font-weight:600; color:var(--text);
+}
+.cal-nav {
+  background:none; border:none; cursor:pointer; color:var(--text-muted);
+  width:24px; height:24px; display:flex; align-items:center; justify-content:center;
+  border-radius:4px; transition:background 0.1s, color 0.1s; flex-shrink:0;
+}
+.cal-nav:hover { background:var(--surface3); color:var(--text); }
+#cal-clear {
+  background:none; border:none; cursor:pointer; color:var(--text-dim);
+  font-size:10px; font-family:inherit; padding:2px 6px; border-radius:4px;
+  transition:background 0.1s, color 0.1s; white-space:nowrap;
+}
+#cal-clear:hover { background:var(--surface3); color:var(--danger); }
+
+#cal-grid { padding:6px 8px 10px; }
+.cal-dow-row {
+  display:grid; grid-template-columns:repeat(7,1fr);
+  margin-bottom:3px;
+}
+.cal-dow {
+  text-align:center; font-size:9px; font-weight:600;
+  color:var(--text-dim); text-transform:uppercase; padding:2px 0;
+}
+.cal-dow.workday { color:var(--accent); }
+.cal-days {
+  display:grid; grid-template-columns:repeat(7,1fr); gap:2px;
+}
+.cal-day {
+  aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+  font-size:11px; border-radius:5px; cursor:pointer;
+  color:var(--text-muted); transition:background 0.1s, color 0.1s;
+  border:1px solid transparent;
+}
+.cal-day:hover:not(.cal-empty):not(.cal-selected) { background:var(--surface3); color:var(--text); }
+.cal-day.cal-empty { cursor:default; pointer-events:none; }
+.cal-day.cal-today { border-color:var(--border2); color:var(--text); font-weight:600; }
+.cal-day.cal-selected { background:var(--accent); color:#fff; font-weight:600; }
+.cal-day.cal-selected.cal-today { border-color:transparent; }
+.cal-day.cal-workday:not(.cal-selected):not(.cal-empty) { color:var(--text); }
+.cal-day.cal-other-month { color:var(--text-dim); opacity:0.45; }
+body.light #cal-bubble { box-shadow:0 8px 32px rgba(0,0,0,0.14); }
+body.light #cal-bubble::after { border-right-color:var(--surface); }
+body.light #cal-bubble.flip-left::after { border-left-color:var(--surface); }
+
+/* Due date is now a clickable button */
+.card-due {
+  font-size:11px; color:var(--text-muted);
+  display:flex; align-items:center; gap:3px;
+  background:none; border:none; cursor:pointer; font-family:inherit;
+  padding:0; border-radius:3px;
+  transition:color 0.1s;
+}
+.card-due:hover { color:var(--text); }
+.card-due.overdue { color:#F87171; }
+.card-due.overdue:hover { color:#F87171; }
+.card-due.soon { color:#F59E0B; }
+.card-due.soon:hover { color:#F59E0B; }
+body.light .card-due.overdue { color:#DC2626; }
+body.light .card-due.soon { color:#B45309; }
+/* "Add due date" button when no date set */
+.card-add-due {
+  background:none; border:none; cursor:pointer; font-family:inherit;
+  font-size:11px; color:var(--text-dim); display:flex; align-items:center; gap:3px;
+  padding:0; border-radius:3px; transition:color 0.1s;
+}
+.card-add-due:hover { color:var(--text-muted); }
+
 /* TOOLTIP */
 .fb-tooltip { position:fixed; z-index:9999; pointer-events:none; background:#0a0c13; border:0.5px solid var(--border2); color:var(--text); font-size:11px; font-family:'Inter',sans-serif; padding:4px 9px; border-radius:5px; white-space:nowrap; opacity:0; transition:opacity 0.12s; }
 .fb-tooltip.visible { opacity:1; }
@@ -780,6 +883,24 @@ body.launching.reveal #cmd-zone {
       <button class="btn-secondary" id="modal-cancel">Cancel</button>
       <button class="btn-primary" id="modal-save">Save Key</button>
     </div>
+  </div>
+</div>
+
+<!-- Calendar Bubble -->
+<div id="cal-bubble" role="dialog" aria-label="Pick due date">
+  <div id="cal-header">
+    <button class="cal-nav" id="cal-prev" aria-label="Previous month">
+      <svg width="8" height="12" viewBox="0 0 8 12" fill="none"><path d="M6 1L1 6l5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <span id="cal-month-label"></span>
+    <button class="cal-nav" id="cal-next" aria-label="Next month">
+      <svg width="8" height="12" viewBox="0 0 8 12" fill="none"><path d="M2 1l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button id="cal-clear" data-tip="Remove due date">Clear</button>
+  </div>
+  <div id="cal-grid">
+    <div class="cal-dow-row" id="cal-dow-row"></div>
+    <div class="cal-days" id="cal-days"></div>
   </div>
 </div>
 
@@ -1085,7 +1206,11 @@ function cardMetaAndActions(t) {
   var notesBtnCls = 'card-btn-notes' + (noteCount ? ' has-notes' : '');
   var metaLeft = '';
   if (t.onHold) metaLeft += '<span class="hold-badge"><i class="ti ti-player-pause" style="font-size:10px"></i>on hold</span>';
-  if (due) metaLeft += '<div class="card-due ' + due.cls + '"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</div>';
+  if (due) {
+    metaLeft += '<button class="card-due ' + due.cls + '" onclick="openCal(event,\'' + t.id + '\')" data-tip="Change due date"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</button>';
+  } else {
+    metaLeft += '<button class="card-add-due" onclick="openCal(event,\'' + t.id + '\')" data-tip="Set due date"><i class="ti ti-calendar" style="font-size:11px"></i>Set date</button>';
+  }
   var metaRow = '<div class="card-meta">'
     + '<div class="card-meta-left">' + metaLeft + '</div>'
     + '<button class="' + notesBtnCls + '" onclick="openNotes(event,\'' + t.id + '\')" data-tip="' + noteTip + '">'
@@ -2294,6 +2419,163 @@ function buildStandupText() {
     }, 550);
   }, 1500);
 })();
+
+
+/* ── Calendar bubble ── */
+var calTaskId = null;
+var calYear = 0;
+var calMonth = 0; /* 0-based */
+
+var MONTH_NAMES = ['January','February','March','April','May','June',
+                   'July','August','September','October','November','December'];
+var DOW_LABELS  = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+/* Work days: Tue=2, Wed=3, Thu=4, Fri=5 */
+var WORK_DAYS   = [2,3,4,5];
+
+window.openCal = function(e, id) {
+  e.stopPropagation();
+  var task = tasks.find(function(t){ return t.id === id; });
+  if (!task) return;
+
+  var bubble = document.getElementById('cal-bubble');
+  if (bubble.classList.contains('open') && calTaskId === id) {
+    closeCal(); return;
+  }
+
+  calTaskId = id;
+  /* Start on the month of the current due date, or today */
+  var base = task.due ? new Date(task.due + 'T12:00:00') : new Date();
+  calYear  = base.getFullYear();
+  calMonth = base.getMonth();
+  renderCalGrid();
+
+  /* Position — same logic as notes bubble */
+  var btn  = e.currentTarget;
+  var rect = btn.getBoundingClientRect();
+  var bw = 248, bh = 260;
+  var top  = rect.top - 18;
+  var left = rect.right + 10;
+  if (left + bw > window.innerWidth - 12) {
+    left = rect.left - bw - 10;
+    bubble.classList.add('flip-left');
+  } else {
+    bubble.classList.remove('flip-left');
+  }
+  if (top + bh > window.innerHeight - 12) top = window.innerHeight - bh - 12;
+  if (top < 8) top = 8;
+  bubble.style.top  = top + 'px';
+  bubble.style.left = left + 'px';
+  bubble.classList.add('open');
+};
+
+function closeCal() {
+  document.getElementById('cal-bubble').classList.remove('open');
+  calTaskId = null;
+}
+
+function renderCalGrid() {
+  var task = calTaskId ? tasks.find(function(t){ return t.id === calTaskId; }) : null;
+  var selectedDate = task && task.due ? task.due : null;
+
+  document.getElementById('cal-month-label').textContent =
+    MONTH_NAMES[calMonth] + ' ' + calYear;
+
+  /* DOW header row */
+  var dowRow = document.getElementById('cal-dow-row');
+  dowRow.innerHTML = DOW_LABELS.map(function(d, i) {
+    var isWork = WORK_DAYS.indexOf(i) !== -1;
+    return '<div class="cal-dow' + (isWork ? ' workday' : '') + '">' + d + '</div>';
+  }).join('');
+
+  /* Days grid */
+  var today = new Date(); today.setHours(0,0,0,0);
+  var todayStr = today.toISOString().split('T')[0];
+
+  /* First day of month */
+  var firstDay = new Date(calYear, calMonth, 1).getDay(); /* 0=Sun */
+  var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  var daysInPrev  = new Date(calYear, calMonth, 0).getDate();
+
+  var cells = [];
+  /* Leading cells from previous month */
+  for (var i = 0; i < firstDay; i++) {
+    var d = daysInPrev - firstDay + 1 + i;
+    cells.push({ day: d, month: calMonth - 1, year: calYear, otherMonth: true });
+  }
+  /* This month */
+  for (var d2 = 1; d2 <= daysInMonth; d2++) {
+    cells.push({ day: d2, month: calMonth, year: calYear, otherMonth: false });
+  }
+  /* Trailing cells to fill the last row */
+  var remaining = 7 - (cells.length % 7);
+  if (remaining < 7) {
+    for (var t2 = 1; t2 <= remaining; t2++) {
+      cells.push({ day: t2, month: calMonth + 1, year: calYear, otherMonth: true });
+    }
+  }
+
+  var daysEl = document.getElementById('cal-days');
+  daysEl.innerHTML = cells.map(function(c) {
+    var yr = c.year, mo = c.month;
+    /* Normalise month overflow */
+    if (mo < 0) { yr--; mo = 11; }
+    if (mo > 11) { yr++; mo = 0; }
+    var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
+    var dateStr = yr + '-' + pad(mo + 1) + '-' + pad(c.day);
+    var dow = new Date(yr, mo, c.day).getDay();
+    var isWork  = WORK_DAYS.indexOf(dow) !== -1;
+    var isToday = dateStr === todayStr;
+    var isSel   = dateStr === selectedDate;
+    var cls = 'cal-day';
+    if (c.otherMonth) cls += ' cal-other-month';
+    if (isWork && !c.otherMonth) cls += ' cal-workday';
+    if (isToday) cls += ' cal-today';
+    if (isSel)   cls += ' cal-selected';
+    return '<button class="' + cls + '" onclick="pickDate(\'' + dateStr + '\')" data-tip="' + dateStr + '">' + c.day + '</button>';
+  }).join('');
+}
+
+window.pickDate = async function(dateStr) {
+  if (!calTaskId) return;
+  var task = tasks.find(function(t){ return t.id === calTaskId; });
+  if (!task) return;
+  task.due = dateStr;
+  await window.flowboard.saveTasks(tasks);
+  renderBoard();
+  closeCal();
+};
+
+document.getElementById('cal-prev').addEventListener('click', function(e) {
+  e.stopPropagation();
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalGrid();
+});
+document.getElementById('cal-next').addEventListener('click', function(e) {
+  e.stopPropagation();
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalGrid();
+});
+document.getElementById('cal-clear').addEventListener('click', async function(e) {
+  e.stopPropagation();
+  if (!calTaskId) return;
+  var task = tasks.find(function(t){ return t.id === calTaskId; });
+  if (!task) return;
+  task.due = null;
+  await window.flowboard.saveTasks(tasks);
+  renderBoard();
+  closeCal();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeCal();
+});
+document.addEventListener('mousedown', function(e) {
+  var bubble = document.getElementById('cal-bubble');
+  if (bubble.classList.contains('open') && !bubble.contains(e.target)) {
+    if (!e.target.closest('.card-due') && !e.target.closest('.card-add-due')) closeCal();
+  }
+});
 
 /* ── Tooltip engine ── */
 var tip = document.createElement('div');
