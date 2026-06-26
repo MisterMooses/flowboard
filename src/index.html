@@ -166,11 +166,11 @@ body.light #btn-update:hover { background:rgba(5,150,105,0.10); color:#047857; }
 body.light .card-btn:hover { background:#d8ddef; }
 .card-btn.hold-active { color:#F59E0B; border-color:rgba(245,158,11,0.35); background:rgba(245,158,11,0.08); }
 .card-btn-label { font-size:10.5px; font-weight:500; }
-/* Delete — icon only, right-justified, red on hover */
+/* Delete — icon only, right-justified flush to archive button, red on hover */
 .card-btn-del {
   background:none; border:none; cursor:pointer; padding:3px 6px;
   border-radius:4px; color:var(--text-dim); font-size:14px;
-  display:flex; align-items:center; margin-left:auto;
+  display:flex; align-items:center;
   transition:color 0.12s, background 0.12s;
 }
 .card-btn-del:hover { color:#F87171; background:rgba(248,113,113,0.1); }
@@ -706,11 +706,11 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
 .card-add-due:hover { color:var(--text-muted); background:var(--surface3); border-color:var(--border2); border-style:solid; }
 
 
-/* ARCHIVE BUTTON on done cards */
+/* ARCHIVE BUTTON on done cards — right-justified, archive+delete sit together */
 .card-btn-archive {
   background:none; border:none; cursor:pointer; padding:3px 6px;
   border-radius:4px; color:var(--text-dim); font-size:14px;
-  display:flex; align-items:center;
+  display:flex; align-items:center; margin-left:auto;
   transition:color 0.12s, background 0.12s;
 }
 .card-btn-archive:hover { color:#F59E0B; background:rgba(245,158,11,0.1); }
