@@ -903,6 +903,45 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
 .changelog-item { padding-left:10px; color:var(--text-muted); margin-bottom:2px; }
 .changelog-item::before { content:'·'; margin-right:6px; color:var(--text-dim); }
 
+
+/* INSTALL SPLASH */
+#install-splash {
+  position:fixed; inset:0; z-index:99999;
+  background:var(--bg);
+  display:none; flex-direction:column;
+  align-items:center; justify-content:center; gap:28px;
+  opacity:0; transition:opacity 0.3s ease;
+}
+#install-splash.visible { display:flex; }
+#install-splash.shown { opacity:1; }
+#install-splash img {
+  width:120px; height:120px;
+  filter:drop-shadow(0 8px 32px rgba(91,82,232,0.45));
+}
+#install-splash-title {
+  font-size:22px; font-weight:700; color:var(--text);
+  display:flex; align-items:center; gap:6px;
+}
+#install-splash-title .flow { color:var(--accent); }
+#install-splash-msg {
+  font-size:13px; color:var(--text-muted);
+  letter-spacing:0.02em;
+}
+#install-progress-wrap {
+  width:220px; height:3px; background:var(--surface3);
+  border-radius:2px; overflow:hidden;
+}
+#install-progress-bar {
+  height:100%; width:0%; background:var(--accent);
+  border-radius:2px;
+  animation:install-sweep 1.8s ease-in-out infinite;
+}
+@keyframes install-sweep {
+  0%   { width:0%;   margin-left:0%; }
+  50%  { width:60%;  margin-left:20%; }
+  100% { width:0%;   margin-left:100%; }
+}
+
 /* TOOLTIP */
 .fb-tooltip { position:fixed; z-index:9999; pointer-events:none; background:#0a0c13; border:0.5px solid var(--border2); color:var(--text); font-size:11px; font-family:'Inter',sans-serif; padding:4px 9px; border-radius:5px; white-space:nowrap; opacity:0; transition:opacity 0.12s; }
 .fb-tooltip.visible { opacity:1; }
@@ -960,6 +999,18 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
     <img src="../assets/icon.png" alt="Flowboard" draggable="false">
     <div id="launch-logo-name"><span class="flow">Flow</span><span>board</span></div>
   </div>
+</div>
+
+<!-- Install update splash -->
+<div id="install-splash">
+  <img src="../assets/icon.png" alt="Flowboard" draggable="false">
+  <div id="install-splash-title">
+    <span class="flow">Flow</span><span>board</span>
+  </div>
+  <div id="install-progress-wrap">
+    <div id="install-progress-bar"></div>
+  </div>
+  <div id="install-splash-msg">Installing update...</div>
 </div>
 
 <div id="layout">
@@ -3380,10 +3431,23 @@ document.getElementById('btn-update').addEventListener('click', function() {
   var btn = document.getElementById('btn-update');
   if (btn.classList.contains('downloading')) return;
   if (updateDownloaded) {
-    /* Download complete — restart and install */
-    if (window.flowboard && window.flowboard.installUpdate) {
-      window.flowboard.installUpdate();
+    /* Show branded splash, then trigger silent install after short delay */
+    var splash = document.getElementById('install-splash');
+    if (splash) {
+      splash.classList.add('visible');
+      /* Tiny delay so display:flex takes effect before opacity transition */
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          splash.classList.add('shown');
+        });
+      });
     }
+    /* Give the splash 800ms to fade in before Electron quits */
+    setTimeout(function() {
+      if (window.flowboard && window.flowboard.installUpdate) {
+        window.flowboard.installUpdate();
+      }
+    }, 800);
   } else if (updateInfo) {
     /* Start download */
     btn.classList.add('downloading');

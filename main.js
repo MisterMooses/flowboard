@@ -151,7 +151,11 @@ ipcMain.handle('download-update', () => {
 
 // Install update and restart
 ipcMain.handle('install-update', () => {
-  autoUpdater.quitAndInstall(false, true);
+  // isSilent=true skips NSIS prompts, isForceRunAfter=true relaunches app
+  // Small delay lets the renderer splash finish fading in before we quit
+  setTimeout(() => {
+    autoUpdater.quitAndInstall(true, true);
+  }, 600);
 });
 
 ipcMain.handle('call-anthropic', async (_, { apiKey, prompt, system }) => {

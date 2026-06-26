@@ -1,5 +1,9 @@
 # Flowboard Changelog
 
+## v1.5.6
+### Improvements
+- **Silent update install:** Clicking "Restart & Install" now shows a branded Flowboard splash screen with an animated progress bar while the installer runs silently in the background. No installer prompts or wizard screens. App relaunches automatically when complete.
+
 ## v1.5.5
 ### Fixes
 - Changelog section in Settings drawer is now collapsible and starts collapsed.
