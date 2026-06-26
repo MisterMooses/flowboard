@@ -1337,17 +1337,16 @@ function cardMetaAndActions(t) {
     + '<button class="' + notesBtnCls + '" onclick="openNotes(event,\'' + t.id + '\')" data-tip="' + noteTip + '">'
     + '<svg width="13" height="14" viewBox="0 0 13 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2" y="1" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.1"/><line x1="4.5" y1="1" x2="4.5" y2="13" stroke="currentColor" stroke-width="1.1"/><path d="M4.5 3.5 C3.5 3.5 3 3 3 2.5 C3 2 3.5 1.5 4.5 1.5" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/><path d="M4.5 6.5 C3.5 6.5 3 6 3 5.5 C3 5 3.5 4.5 4.5 4.5" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/><path d="M4.5 9.5 C3.5 9.5 3 9 3 8.5 C3 8 3.5 7.5 4.5 7.5" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/><line x1="6.5" y1="4.5" x2="10.5" y2="4.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="6.5" y1="7" x2="10.5" y2="7" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="6.5" y1="9.5" x2="9" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>' + noteDot + '</button>'
     + '</div>';
-  var archiveBtn = isDone
+  /* Done cards get archive instead of delete; active cards get delete */
+  var rightBtn = isDone
     ? '<button class="card-btn-archive" onclick="archiveTask(\'' + t.id + '\')" data-tip="Archive this task">' + '<svg width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="0.5" y="1" width="11" height="2.5" rx="0.75" stroke="currentColor" stroke-width="1"/><path d="M1.5 3.5V11a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V3.5" stroke="currentColor" stroke-width="1"/><path d="M4 7.5l2 2 2-2M6 9.5V6" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>' + '</button>'
-    : '';
+    : '<button class="card-btn-del" onclick="deleteTask(\'' + t.id + '\')" data-tip="Delete this task">' + '<svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><path d="M1 3h10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M4 3V2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><rect x="2" y="4" width="8" height="9" rx="1" stroke="currentColor" stroke-width="1.1"/><line x1="4.5" y1="6" x2="4.5" y2="11" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="7.5" y1="6" x2="7.5" y2="11" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>' + '</button>';
   var actionsRow = '<div class="card-actions">'
     + '<button class="card-btn' + completeCls + '" onclick="completeTask(\'' + t.id + '\')" data-tip="' + completeTip + '">'
     + '<i class="ti ti-circle-check"></i><span class="card-btn-label">' + completeLabel + '</span></button>'
     + '<button class="card-btn' + holdActiveCls + '" onclick="toggleHold(\'' + t.id + '\',event)" data-tip="' + holdTip + '">'
     + '<i class="ti ti-player-pause"></i><span class="card-btn-label">' + holdLabel + '</span></button>'
-    + archiveBtn
-    + '<button class="card-btn-del" onclick="deleteTask(\'' + t.id + '\')" data-tip="Delete this task">'
-    + '<svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><path d="M1 3h10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M4 3V2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><rect x="2" y="4" width="8" height="9" rx="1" stroke="currentColor" stroke-width="1.1"/><line x1="4.5" y1="6" x2="4.5" y2="11" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="7.5" y1="6" x2="7.5" y2="11" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg></button>'
+    + rightBtn
     + '</div>';
   return metaRow + actionsRow;
 }
