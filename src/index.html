@@ -2398,20 +2398,11 @@ document.getElementById('btn-update').addEventListener('click', function() {
     btn.setAttribute('data-tip', 'Downloading... 0%');
     /* downloadUpdate resolves before app.quit fires — ignore the promise result.
        The app will quit on its own once the installer launches. */
+    /* Fire and forget — app quits when installer launches so we
+       never reliably get a resolved/rejected promise back. */
     window.flowboard.downloadUpdate({
       downloadUrl: updateInfo.downloadUrl,
       version: updateInfo.version,
-    }).then(function() {
-      /* Success — app will quit shortly, nothing to do */
-    }).catch(function(err) {
-      /* Only fires on genuine download errors, not on app quit */
-      if (!err || !err.message || err.message.indexOf('disconnected') === -1) {
-        btn.classList.remove('downloading');
-        var bar = document.getElementById('btn-update-progress');
-        if (bar) bar.style.width = '0%';
-        btn.setAttribute('data-tip', 'Download failed — click to open release page');
-        if (tip && tip.classList.contains('visible')) tip.textContent = 'Download failed — click to open release page';
-      }
     });
   } else if (window.flowboard && window.flowboard.openExternal) {
     window.flowboard.openExternal(updateInfo.url);
