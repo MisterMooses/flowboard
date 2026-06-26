@@ -1,5 +1,9 @@
 # Flowboard Changelog
 
+## v1.5.5
+### Fixes
+- Changelog section in Settings drawer is now collapsible and starts collapsed.
+
 ## v1.5.4
 ### Updates
 - **Auto-updater:** Replaced manual update downloader with electron-updater for reliable, verified background updates. Updates now download silently and prompt to restart rather than relaunching mid-session.

@@ -875,12 +875,23 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
 
 
 /* CHANGELOG in settings drawer */
+#changelog-collapsible {
+  overflow:hidden; max-height:0; opacity:0;
+  transition:max-height 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.2s;
+}
+#changelog-collapsible.open { max-height:400px; opacity:1; }
 #changelog-body {
   font-size:11px; color:var(--text-muted); line-height:1.7;
-  max-height:320px; overflow-y:auto; padding-right:4px;
+  max-height:320px; overflow-y:auto; padding-right:4px; padding-top:8px;
 }
 #changelog-body::-webkit-scrollbar { width:3px; }
 #changelog-body::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:2px; }
+#changelog-toggle-chevron {
+  color:var(--text-dim); font-size:13px; flex-shrink:0;
+  transition:transform 0.2s; display:inline-block;
+}
+#changelog-section.open #changelog-toggle-chevron { transform:rotate(0deg); }
+#changelog-section:not(.open) #changelog-toggle-chevron { transform:rotate(-90deg); }
 .changelog-version {
   font-size:12px; font-weight:700; color:var(--text);
   margin-top:14px; margin-bottom:4px; padding-bottom:4px;
@@ -1114,11 +1125,17 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
   </div>
   <div id="settings-drawer-body">
     <div class="settings-section" id="changelog-section">
-      <div class="settings-section-label" style="display:flex;align-items:center;justify-content:space-between">
-        <span>What's New</span>
+      <div class="settings-section-label" onclick="toggleChangelog()"
+           style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
+        <span style="display:flex;align-items:center;gap:6px">
+          <i id="changelog-toggle-chevron" class="ti ti-chevron-down"></i>
+          What's New
+        </span>
         <span id="changelog-version-badge" style="font-size:10px;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0"></span>
       </div>
-      <div id="changelog-body">Loading...</div>
+      <div id="changelog-collapsible">
+        <div id="changelog-body">Loading...</div>
+      </div>
     </div>
 
     <hr class="settings-divider">
@@ -3116,6 +3133,14 @@ function loadSettingsDrawer() {
 
   /* Changelog */
   loadChangelogSection();
+}
+
+function toggleChangelog() {
+  var section = document.getElementById('changelog-section');
+  var collapsible = document.getElementById('changelog-collapsible');
+  var isOpen = section.classList.contains('open');
+  section.classList.toggle('open', !isOpen);
+  collapsible.classList.toggle('open', !isOpen);
 }
 
 async function loadChangelogSection() {
