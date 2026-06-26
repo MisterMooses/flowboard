@@ -3,7 +3,6 @@ const path = require('path');
 const fs   = require('fs');
 const https = require('https');
 const os   = require('os');
-const { exec } = require('child_process');
 
 // ── Paths ─────────────────────────────────────────────────────────────────────
 const USER_DATA_DIR = app.getPath('userData');
@@ -165,10 +164,11 @@ ipcMain.handle('download-update', (_, { downloadUrl, version }) => {
     let received = 0;
 
     function doGet(url) {
-      https.get(url, { headers: { 'User-Agent': `Flowboard/${APP_VERSION}` } }, (res) => {
+      // GitHub redirects to S3 which may use http or https
+      const mod = url.startsWith('http://') ? require('http') : https;
+      mod.get(url, { headers: { 'User-Agent': `Flowboard/${APP_VERSION}` } }, (res) => {
         // Follow redirects (GitHub asset URLs redirect to S3)
         if (res.statusCode === 302 || res.statusCode === 301) {
-          file.close();
           return doGet(res.headers.location);
         }
         const total = parseInt(res.headers['content-length'] || '0', 10);
@@ -188,10 +188,14 @@ ipcMain.handle('download-update', (_, { downloadUrl, version }) => {
           file.on('finish', () => {
             // Tell renderer we're installing before we quit
             try { win.webContents.send('update-installing'); } catch {}
-            // Launch installer then quit — NSIS will handle the rest
-            exec(`"${destPath}"`);
-            setTimeout(() => app.quit(), 1500);
-            // Resolve immediately — app.quit racing the promise is fine
+            // shell.openPath is the most reliable way to launch an exe on Windows
+            shell.openPath(destPath).then(() => {
+              setTimeout(() => app.quit(), 1500);
+            }).catch(() => {
+              // Fallback: use shell.openItem (older Electron API)
+              try { shell.openItem(destPath); } catch {}
+              setTimeout(() => app.quit(), 1500);
+            });
             resolve({ success: true, path: destPath });
           });
         });
