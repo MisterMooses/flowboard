@@ -186,11 +186,12 @@ ipcMain.handle('download-update', (_, { downloadUrl, version }) => {
         res.on('end', () => {
           file.end();
           file.on('finish', () => {
+            // Tell renderer we're installing before we quit
+            try { win.webContents.send('update-installing'); } catch {}
             // Launch installer then quit — NSIS will handle the rest
-            exec(`"${destPath}"`, (err) => {
-              if (err) return reject(err);
-            });
+            exec(`"${destPath}"`);
             setTimeout(() => app.quit(), 1500);
+            // Resolve immediately — app.quit racing the promise is fine
             resolve({ success: true, path: destPath });
           });
         });

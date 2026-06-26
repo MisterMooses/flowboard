@@ -2381,7 +2381,10 @@ if (window.flowboard && window.flowboard.onDownloadProgress) {
     var bar = document.getElementById('btn-update-progress');
     if (bar) bar.style.width = info.percent + '%';
     var btn = document.getElementById('btn-update');
-    if (btn) btn.setAttribute('data-tip', 'Downloading... ' + info.percent + '%');
+    var label = info.percent >= 100 ? 'Installing...' : 'Downloading... ' + info.percent + '%';
+    if (btn) btn.setAttribute('data-tip', label);
+    /* Update the live tooltip text directly if it's currently visible */
+    if (tip && tip.classList.contains('visible')) tip.textContent = label;
   });
 }
 
@@ -2393,14 +2396,22 @@ document.getElementById('btn-update').addEventListener('click', function() {
   if (updateInfo.downloadUrl && window.flowboard && window.flowboard.downloadUpdate) {
     btn.classList.add('downloading');
     btn.setAttribute('data-tip', 'Downloading... 0%');
+    /* downloadUpdate resolves before app.quit fires — ignore the promise result.
+       The app will quit on its own once the installer launches. */
     window.flowboard.downloadUpdate({
       downloadUrl: updateInfo.downloadUrl,
       version: updateInfo.version,
-    }).catch(function() {
-      /* If download fails, fall back to opening the release page */
-      btn.classList.remove('downloading');
-      btn.setAttribute('data-tip', 'Download failed — click to open release page');
-      if (window.flowboard.openExternal) window.flowboard.openExternal(updateInfo.url);
+    }).then(function() {
+      /* Success — app will quit shortly, nothing to do */
+    }).catch(function(err) {
+      /* Only fires on genuine download errors, not on app quit */
+      if (!err || !err.message || err.message.indexOf('disconnected') === -1) {
+        btn.classList.remove('downloading');
+        var bar = document.getElementById('btn-update-progress');
+        if (bar) bar.style.width = '0%';
+        btn.setAttribute('data-tip', 'Download failed — click to open release page');
+        if (tip && tip.classList.contains('visible')) tip.textContent = 'Download failed — click to open release page';
+      }
     });
   } else if (window.flowboard && window.flowboard.openExternal) {
     window.flowboard.openExternal(updateInfo.url);
