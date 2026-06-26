@@ -1806,6 +1806,50 @@ async function addNewTag() {
   input.value = '';
   renderTagDrawer();
   renderBoard();
+  /* Apply to relevant active tasks in the background */
+  if (config.apiKey) applyTagToActiveTasks(name);
+}
+
+/* Ask AI which active (non-done) tasks are relevant to a newly added tag,
+   then apply it to those tasks. */
+async function applyTagToActiveTasks(tagName) {
+  var activeTasks = tasks.filter(function(t){ return t.column !== 'done'; });
+  if (!activeTasks.length) return;
+
+  var taskList = activeTasks.map(function(t, i){
+    return i + ': "' + t.title + '"' + (t.tags && t.tags.length ? ' [' + t.tags.join(', ') + ']' : '');
+  }).join('\n');
+
+  var prompt = 'I just added a new tag called "' + tagName + '" to my Kanban board.\n'
+    + 'Here are my active (not completed) tasks, each numbered:\n'
+    + taskList + '\n\n'
+    + 'Which of these tasks is this tag clearly relevant to?\n'
+    + 'Return ONLY a JSON array of the task numbers that should receive this tag. '
+    + 'Be conservative — only include tasks where the tag is an obvious, direct match. '
+    + 'Return an empty array [] if none clearly apply. No explanation, just the array.';
+
+  try {
+    var raw = await window.flowboard.callAnthropic({ apiKey: config.apiKey, prompt: prompt });
+    var indices = JSON.parse(raw);
+    if (!Array.isArray(indices) || !indices.length) return;
+
+    var changed = false;
+    indices.forEach(function(i) {
+      var task = activeTasks[i];
+      if (!task) return;
+      var tags = task.tags || [];
+      if (tags.indexOf(tagName) === -1) {
+        task.tags = tags.concat([tagName]);
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      await window.flowboard.saveTasks(tasks);
+      renderBoard();
+      renderTagLists();
+    }
+  } catch(e) { /* silently ignore — tag still gets added, just not auto-applied */ }
 }
 
 /* ── AI Tag Suggestions ── */
@@ -1868,6 +1912,8 @@ window.addSuggestedTag = async function(name) {
   btns.forEach(function(b){ b.textContent = 'Added ✓'; b.disabled = true; b.style.color = 'var(--col-done)'; });
   /* refresh just the in-use and unused sections */
   renderTagLists();
+  /* Apply to relevant active tasks in the background */
+  if (config.apiKey) applyTagToActiveTasks(name);
 };
 
 /* ── Collapsible sidebar sections ── */
