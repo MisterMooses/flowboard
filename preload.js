@@ -12,7 +12,9 @@ contextBridge.exposeInMainWorld('flowboard', {
   setThemeIcon:   (theme)   => ipcRenderer.invoke('set-theme-icon', theme),
   openExternal:   (url)     => ipcRenderer.invoke('open-external', url),
   getVersion:     ()        => ipcRenderer.invoke('get-version'),
-  downloadUpdate: (opts)    => ipcRenderer.invoke('download-update', opts),
+  getChangelog:   ()        => ipcRenderer.invoke('get-changelog'),
+  downloadUpdate: ()        => ipcRenderer.invoke('download-update'),
+  installUpdate:  ()        => ipcRenderer.invoke('install-update'),
 
   onMaximizeChange: (cb) => {
     ipcRenderer.on('window-maximized',   () => cb(true));
@@ -23,5 +25,8 @@ contextBridge.exposeInMainWorld('flowboard', {
   },
   onDownloadProgress: (cb) => {
     ipcRenderer.on('download-progress', (_, info) => cb(info));
+  },
+  onUpdateDownloaded: (cb) => {
+    ipcRenderer.on('update-downloaded', () => cb());
   },
 });

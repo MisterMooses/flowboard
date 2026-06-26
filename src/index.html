@@ -873,6 +873,25 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
 }
 .settings-inline-save:hover { opacity:0.88; }
 
+
+/* CHANGELOG in settings drawer */
+#changelog-body {
+  font-size:11px; color:var(--text-muted); line-height:1.7;
+  max-height:320px; overflow-y:auto; padding-right:4px;
+}
+#changelog-body::-webkit-scrollbar { width:3px; }
+#changelog-body::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:2px; }
+.changelog-version {
+  font-size:12px; font-weight:700; color:var(--text);
+  margin-top:14px; margin-bottom:4px; padding-bottom:4px;
+  border-bottom:0.5px solid var(--border);
+}
+.changelog-version:first-child { margin-top:0; }
+.changelog-section { font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.08em; color:var(--accent); margin-top:8px; margin-bottom:3px; }
+.changelog-item { padding-left:10px; color:var(--text-muted); margin-bottom:2px; }
+.changelog-item::before { content:'·'; margin-right:6px; color:var(--text-dim); }
+
 /* TOOLTIP */
 .fb-tooltip { position:fixed; z-index:9999; pointer-events:none; background:#0a0c13; border:0.5px solid var(--border2); color:var(--text); font-size:11px; font-family:'Inter',sans-serif; padding:4px 9px; border-radius:5px; white-space:nowrap; opacity:0; transition:opacity 0.12s; }
 .fb-tooltip.visible { opacity:1; }
@@ -1094,6 +1113,16 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
     </button>
   </div>
   <div id="settings-drawer-body">
+    <div class="settings-section" id="changelog-section">
+      <div class="settings-section-label" style="display:flex;align-items:center;justify-content:space-between">
+        <span>What's New</span>
+        <span id="changelog-version-badge" style="font-size:10px;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0"></span>
+      </div>
+      <div id="changelog-body">Loading...</div>
+    </div>
+
+    <hr class="settings-divider">
+
     <div class="settings-section">
       <div class="settings-section-label">Anthropic API Key</div>
       <p class="settings-section-desc">Your key is stored locally and never sent anywhere except directly to Anthropic's API. Get a key at <strong>console.anthropic.com</strong>.</p>
@@ -3084,6 +3113,62 @@ function loadSettingsDrawer() {
   /* Auto-archive days */
   var archInput = document.getElementById('settings-archive-days');
   if (archInput) archInput.value = config.autoArchiveDays || 0;
+
+  /* Changelog */
+  loadChangelogSection();
+}
+
+async function loadChangelogSection() {
+  if (!window.flowboard || !window.flowboard.getChangelog) return;
+  var md = await window.flowboard.getChangelog();
+  if (!md) return;
+
+  var version = await window.flowboard.getVersion();
+  var badge = document.getElementById('changelog-version-badge');
+  if (badge) badge.textContent = 'v' + version;
+
+  /* Parse markdown into sections — find current version block */
+  var lines = md.split('\n');
+  var html = '';
+  var inCurrentVersion = false;
+  var foundFirst = false;
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    if (line.startsWith('## ')) {
+      if (!foundFirst) {
+        /* First version section — show in full */
+        foundFirst = true;
+        inCurrentVersion = true;
+        var vLabel = line.replace('## ', '').trim();
+        html += '<div class="changelog-version">' + escHtml(vLabel) + '</div>';
+      } else {
+        /* Subsequent versions — show header only, collapsible later */
+        inCurrentVersion = false;
+        var vLabel2 = line.replace('## ', '').trim();
+        html += '<div class="changelog-version" style="color:var(--text-muted);font-weight:600">' + escHtml(vLabel2) + '</div>';
+      }
+    } else if (inCurrentVersion || !foundFirst) {
+      if (line.startsWith('### ')) {
+        html += '<div class="changelog-section">' + escHtml(line.replace('### ', '')) + '</div>';
+      } else if (line.startsWith('- **')) {
+        /* Bold feature name */
+        var text = line.replace(/^- /, '');
+        var formatted = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        html += '<div class="changelog-item">' + formatted + '</div>';
+      } else if (line.startsWith('- ')) {
+        html += '<div class="changelog-item">' + escHtml(line.replace(/^- /, '')) + '</div>';
+      }
+    } else {
+      /* Past first version — show items collapsed/muted */
+      if (line.startsWith('- ')) {
+        html += '<div class="changelog-item" style="opacity:0.6">' + escHtml(line.replace(/^- /, '')) + '</div>';
+      }
+    }
+  }
+
+  var body = document.getElementById('changelog-body');
+  if (body) body.innerHTML = html || '<div style="color:var(--text-dim)">No changelog available.</div>';
 }
 
 window.toggleWorkDay = async function(day) {
@@ -3231,15 +3316,14 @@ if (window.flowboard && window.flowboard.getVersion) {
 
 /* ── Update available notification ── */
 var updateInfo = null;
+var updateDownloaded = false;
+
 if (window.flowboard && window.flowboard.onUpdateAvailable) {
   window.flowboard.onUpdateAvailable(function(info) {
     updateInfo = info;
     var btn = document.getElementById('btn-update');
     btn.classList.add('visible');
-    var tip = info.downloadUrl
-      ? 'Update ' + info.version + ' available — click to download and install'
-      : 'Update ' + info.version + ' available — click to open release page';
-    btn.setAttribute('data-tip', tip);
+    btn.setAttribute('data-tip', 'Update ' + info.version + ' available — click to download');
   });
 }
 
@@ -3248,31 +3332,40 @@ if (window.flowboard && window.flowboard.onDownloadProgress) {
     var bar = document.getElementById('btn-update-progress');
     if (bar) bar.style.width = info.percent + '%';
     var btn = document.getElementById('btn-update');
-    var label = info.percent >= 100 ? 'Installing...' : 'Downloading... ' + info.percent + '%';
+    var label = 'Downloading... ' + info.percent + '%';
     if (btn) btn.setAttribute('data-tip', label);
-    /* Update the live tooltip text directly if it's currently visible */
     if (tip && tip.classList.contains('visible')) tip.textContent = label;
   });
 }
 
-document.getElementById('btn-update').addEventListener('click', function() {
-  if (!updateInfo) return;
-  var btn = document.getElementById('btn-update');
-  if (btn.classList.contains('downloading')) return; /* already downloading */
+if (window.flowboard && window.flowboard.onUpdateDownloaded) {
+  window.flowboard.onUpdateDownloaded(function() {
+    updateDownloaded = true;
+    var btn = document.getElementById('btn-update');
+    var bar = document.getElementById('btn-update-progress');
+    if (bar) bar.style.width = '100%';
+    if (btn) {
+      btn.classList.remove('downloading');
+      btn.setAttribute('data-tip', 'Update ready — click to restart and install');
+    }
+  });
+}
 
-  if (updateInfo.downloadUrl && window.flowboard && window.flowboard.downloadUpdate) {
+document.getElementById('btn-update').addEventListener('click', function() {
+  var btn = document.getElementById('btn-update');
+  if (btn.classList.contains('downloading')) return;
+  if (updateDownloaded) {
+    /* Download complete — restart and install */
+    if (window.flowboard && window.flowboard.installUpdate) {
+      window.flowboard.installUpdate();
+    }
+  } else if (updateInfo) {
+    /* Start download */
     btn.classList.add('downloading');
     btn.setAttribute('data-tip', 'Downloading... 0%');
-    /* downloadUpdate resolves before app.quit fires — ignore the promise result.
-       The app will quit on its own once the installer launches. */
-    /* Fire and forget — app quits when installer launches so we
-       never reliably get a resolved/rejected promise back. */
-    window.flowboard.downloadUpdate({
-      downloadUrl: updateInfo.downloadUrl,
-      version: updateInfo.version,
-    });
-  } else if (window.flowboard && window.flowboard.openExternal) {
-    window.flowboard.openExternal(updateInfo.url);
+    if (window.flowboard && window.flowboard.downloadUpdate) {
+      window.flowboard.downloadUpdate();
+    }
   }
 });
 document.getElementById('weekly-copy-btn').addEventListener('click', function() {

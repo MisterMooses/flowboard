@@ -1,0 +1,96 @@
+# Flowboard Changelog
+
+## v1.5.4
+### Updates
+- **Auto-updater:** Replaced manual update downloader with electron-updater for reliable, verified background updates. Updates now download silently and prompt to restart rather than relaunching mid-session.
+- **Changelog:** Added in-app changelog accessible from the Settings drawer. View current release notes and full version history without leaving the app.
+
+## v1.5.3
+### New Features
+- **Work days setting:** Configurable work days in Settings → Board Settings. Day-of-week toggle buttons let you define your schedule. All AI scheduling, due date suggestions, calendar highlighting, and weekly summary now respect your configured work days. Removes the hardcoded Tue–Fri 4×10 default.
+- **Auto-archive:** New setting to automatically archive completed tasks after a configurable number of days. Set to 0 to disable.
+- **Tag icon:** Redesigned tag pill icon to match standard price-tag iconography.
+
+### Bug Fixes
+- Fixed board becoming stuck on empty view after deleting the last card using the active tag filter, or after deleting the filtered tag itself. Board now resets to unfiltered view automatically.
+
+## v1.5.2
+### Bug Fixes
+- Fixed tag filter persisting as active after the filtered tag was deleted, leaving the board empty with no way to recover without manually switching filters.
+- Fixed tag filter persisting after the last card using that tag was deleted.
+- Redesigned tag pill icon in the sidebar for better symmetry.
+
+## v1.5.1
+### Bug Fixes
+- Fixed settings pill button displaying a sun icon instead of a gear/cog wheel.
+- Fixed tag manager pill button icon not rendering (was using unavailable icon font glyph).
+
+## v1.5.0
+### New Features
+- **Settings drawer:** Replaced the API Settings modal with a persistent Settings drawer accessible from the sidebar. API key configuration moved into the drawer.
+- **Sidebar pill buttons:** Replaced the sidebar bottom button row with three compact pill toggle buttons — Settings (⚙), Tags (🏷), Archive (📦).
+- **Drawer mutual exclusion:** Opening any drawer now automatically closes any other open drawer.
+- **Unified drawer width:** All drawers (Settings, Tags, Archive) standardized to 420px width.
+
+## v1.4.4
+- Archive sidebar button is now a toggle — clicking again closes the drawer.
+
+## v1.4.3
+- Done cards now show an Archive button in place of the Delete button. Permanent deletion of completed tasks is available from the Archive drawer.
+
+## v1.4.1
+- Fixed archive and delete button alignment on done cards.
+
+## v1.4.0
+### New Features
+- **Task archive:** Completed tasks can be archived from the board with a single click. Archived tasks are hidden from the Done column but preserved in full.
+- **Archive drawer:** Searchable archive viewer accessible from the sidebar. Supports restoring tasks to Done or permanently deleting them.
+- **Archive button:** Appears on completed cards in place of the delete button. Highlights amber on hover to distinguish from destructive actions.
+- **Auto-archive setting:** (Added in v1.5.3) Tasks can be automatically archived after a configurable number of days.
+
+## v1.3.3
+- New tags added via the Tag Manager are now automatically applied to relevant active tasks using AI relevancy detection. Completed cards are excluded.
+
+## v1.3.2
+- Due date on cards is now a clickable button that opens a calendar picker bubble. Matches the notes bubble style with a CSS arrow and flip behavior.
+- Due date styled as a visible pill with color-coded states (normal, overdue, soon).
+- Cards with no due date show a "Set date" placeholder button.
+
+## v1.3.0
+### New Features
+- **Auto-updater:** Flowboard now checks for updates on launch and displays a download button in the titlebar when a new version is available. Clicking downloads the installer and launches it automatically.
+- **Download progress:** Progress bar appears on the update button during download with live percentage tooltip.
+
+## v1.2.0
+### New Features
+- **Launch animation:** Flowboard logo displays centered on a blurred board background for 1.5 seconds on launch, then fades out as the interface sharpens into focus.
+- **App icon in titlebar:** Flowboard infinity logo displayed between "Flow" and "board" in the titlebar wordmark.
+- **SVG send button:** Command bar send button and loading spinner replaced with inline SVG icons for reliable rendering.
+- **Light/dark mode:** Theme toggle in the titlebar. Full light mode palette with per-element color corrections. Theme persists across sessions.
+- **Dynamic taskbar icon:** Taskbar icon updates when switching between light and dark mode.
+
+## v1.1.0
+### New Features
+- **Progress notes:** Notes button on every card opens a popout bubble with timestamped progress log. Hold notes visually distinguished with amber styling and "On Hold" badge.
+- **Hold flow:** Putting a card on hold now requires a note explaining the reason. Resume clears hold without requiring a note.
+- **Weekly summary panel:** Sidebar panel showing this week's upcoming tasks, last week's completions and updates, and blocked/on-hold tasks with reasons. Includes "Copy for standup" button.
+- **Stacks:** Expandable parent cards with subtask children. Progress bar shows completion. Children sorted by due date. AI auto-creates stacks for complex tasks.
+- **Calendar due date picker:** (Moved to v1.3.2)
+- **Tag auto-apply:** (Moved to v1.3.3)
+
+## v1.0.0
+### Initial Release
+- Four-column Kanban board (Backlog, Up Next, In Progress, Done)
+- AI command bar for natural language task creation
+- Priority badges (Critical, High, Medium, Low)
+- Tag system with 16 built-in tags and custom tag support
+- Drag and drop between columns
+- Column focus/expand mode
+- Due date inference and work-day scheduling
+- On-hold state with hold badge
+- Tag Manager drawer with AI tag suggestions
+- Filter by priority and tag
+- Custom Windows titlebar with minimize/maximize/close
+- Light and dark mode
+- Per-user AppData storage (tasks.json, config.json)
+- NSIS installer with desktop and Start Menu shortcuts

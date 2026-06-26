@@ -1,8 +1,8 @@
 const { app, BrowserWindow, ipcMain, nativeImage, shell } = require('electron');
-const path = require('path');
-const fs   = require('fs');
-const https = require('https');
-const os   = require('os');
+const path   = require('path');
+const fs     = require('fs');
+const https  = require('https');
+const { autoUpdater } = require('electron-updater');
 
 // ── Paths ─────────────────────────────────────────────────────────────────────
 const USER_DATA_DIR = app.getPath('userData');
@@ -11,16 +11,7 @@ const DATA_PATH     = path.join(USER_DATA_DIR, 'tasks.json');
 
 // ── App metadata ──────────────────────────────────────────────────────────────
 const PKG         = require('./package.json');
-const APP_VERSION = PKG.version;                      // e.g. "1.1.0"
-const GH_OWNER    = PKG.updater?.githubOwner || '';   // set in package.json
-const GH_REPO     = PKG.updater?.githubRepo  || '';
-
-// ── Secrets (gitignored) ──────────────────────────────────────────────────────
-let GH_TOKEN = '';
-try {
-  const secrets = require('./secrets.json');
-  GH_TOKEN = secrets.githubToken || '';
-} catch { /* secrets.json not present — unauthenticated requests only */ }
+const APP_VERSION = PKG.version;
 
 // ── Config / data helpers ─────────────────────────────────────────────────────
 function loadConfig() {
@@ -38,58 +29,17 @@ function saveTasks(tasks) {
   fs.writeFileSync(DATA_PATH, JSON.stringify(tasks, null, 2));
 }
 
-// ── Icon helpers ──────────────────────────────────────────────────────────────
-function iconPath(theme) {
+// ── Changelog helper ──────────────────────────────────────────────────────────
+function loadChangelog() {
+  try {
+    const p = path.join(__dirname, 'CHANGELOG.md');
+    return fs.readFileSync(p, 'utf8');
+  } catch { return ''; }
+}
+
+// ── Icon helper ───────────────────────────────────────────────────────────────
+function iconPath() {
   return path.join(__dirname, 'assets', 'icon.ico');
-}
-
-// ── Semver comparison ─────────────────────────────────────────────────────────
-function isNewer(remote, local) {
-  // Strips leading 'v' from tag names like "v1.2.0"
-  const parse = v => v.replace(/^v/, '').split('.').map(Number);
-  const [rMaj, rMin, rPat] = parse(remote);
-  const [lMaj, lMin, lPat] = parse(local);
-  if (rMaj !== lMaj) return rMaj > lMaj;
-  if (rMin !== lMin) return rMin > lMin;
-  return rPat > lPat;
-}
-
-// ── Update check ──────────────────────────────────────────────────────────────
-function checkForUpdates(win) {
-  if (!GH_OWNER || GH_OWNER === 'GITHUB_USERNAME' || !GH_REPO) return;
-
-  const options = {
-    hostname: 'api.github.com',
-    path: `/repos/${GH_OWNER}/${GH_REPO}/releases/latest`,
-    method: 'GET',
-    headers: {
-      'User-Agent': `Flowboard/${APP_VERSION}`,
-      'Accept': 'application/vnd.github+json',
-      ...(GH_TOKEN ? { 'Authorization': `token ${GH_TOKEN}` } : {}),
-    },
-  };
-
-  https.get(options, (res) => {
-    let data = '';
-    res.on('data', chunk => data += chunk);
-    res.on('end', () => {
-      try {
-        const release = JSON.parse(data);
-        const tag = release.tag_name;
-        const pageUrl = release.html_url;
-        if (!tag || !isNewer(tag, APP_VERSION)) return;
-        // Find the .exe installer asset
-        const assets = release.assets || [];
-        const exeAsset = assets.find(a => a.name.endsWith('.exe'));
-        win.webContents.send('update-available', {
-          version: tag,
-          url: pageUrl,
-          downloadUrl: exeAsset ? exeAsset.browser_download_url : null,
-          fileSize: exeAsset ? exeAsset.size : null,
-        });
-      } catch (e) { /* silently ignore */ }
-    });
-  }).on('error', () => { /* silently ignore */ });
 }
 
 // ── Window ────────────────────────────────────────────────────────────────────
@@ -110,7 +60,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    icon: iconPath(savedTheme),
+    icon: iconPath(),
     show: false,
   });
 
@@ -118,12 +68,50 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    // Check for updates a few seconds after launch so it doesn't block startup
-    setTimeout(() => checkForUpdates(mainWindow), 3000);
+    setupAutoUpdater();
   });
 
   mainWindow.on('maximize',   () => mainWindow.webContents.send('window-maximized'));
   mainWindow.on('unmaximize', () => mainWindow.webContents.send('window-unmaximized'));
+}
+
+// ── Auto-updater ──────────────────────────────────────────────────────────────
+function setupAutoUpdater() {
+  // Allow unsigned updates for testing — remove when code signing is set up
+  autoUpdater.forceDevUpdateConfig = false;
+
+  // Don't auto-download — let the user trigger the download from the UI
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = false;
+
+  autoUpdater.on('update-available', (info) => {
+    mainWindow.webContents.send('update-available', {
+      version: `v${info.version}`,
+      releaseNotes: info.releaseNotes || '',
+    });
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    mainWindow.webContents.send('download-progress', {
+      percent: Math.round(progress.percent),
+      received: progress.transferred,
+      total: progress.total,
+    });
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    mainWindow.webContents.send('update-downloaded');
+  });
+
+  autoUpdater.on('error', (err) => {
+    // Silently ignore — update check failing shouldn't surface to user
+    console.error('[updater] error:', err.message);
+  });
+
+  // Check 3 seconds after launch
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(() => {});
+  }, 3000);
 }
 
 app.whenReady().then(createWindow);
@@ -132,10 +120,12 @@ app.on('window-all-closed', () => {
 });
 
 // ── IPC handlers ──────────────────────────────────────────────────────────────
-ipcMain.handle('get-config',  ()          => loadConfig());
-ipcMain.handle('save-config', (_, data)   => { saveConfig(data); return true; });
-ipcMain.handle('get-tasks',   ()          => loadTasks());
-ipcMain.handle('save-tasks',  (_, tasks)  => { saveTasks(tasks); return true; });
+ipcMain.handle('get-config',    ()         => loadConfig());
+ipcMain.handle('save-config',   (_, data)  => { saveConfig(data); return true; });
+ipcMain.handle('get-tasks',     ()         => loadTasks());
+ipcMain.handle('save-tasks',    (_, tasks) => { saveTasks(tasks); return true; });
+ipcMain.handle('get-version',   ()         => APP_VERSION);
+ipcMain.handle('get-changelog', ()         => loadChangelog());
 
 ipcMain.handle('window-minimize', () => mainWindow.minimize());
 ipcMain.handle('window-maximize', () => {
@@ -144,71 +134,25 @@ ipcMain.handle('window-maximize', () => {
 ipcMain.handle('window-close', () => mainWindow.close());
 
 ipcMain.handle('set-theme-icon', (_, theme) => {
-  mainWindow.setIcon(nativeImage.createFromPath(iconPath(theme)));
+  mainWindow.setIcon(nativeImage.createFromPath(iconPath()));
   return true;
 });
 
-// Open update URL in default browser
 ipcMain.handle('open-external', (_, url) => {
   shell.openExternal(url);
   return true;
 });
 
-// Download installer and launch it
-ipcMain.handle('download-update', (_, { downloadUrl, version }) => {
-  return new Promise((resolve, reject) => {
-    const fileName = `Flowboard-Setup-${version}.exe`;
-    const destPath = path.join(os.tmpdir(), fileName);
-
-    const file = fs.createWriteStream(destPath);
-    let received = 0;
-
-    function doGet(url) {
-      // GitHub redirects to S3 which may use http or https
-      const mod = url.startsWith('http://') ? require('http') : https;
-      mod.get(url, { headers: { 'User-Agent': `Flowboard/${APP_VERSION}` } }, (res) => {
-        // Follow redirects (GitHub asset URLs redirect to S3)
-        if (res.statusCode === 302 || res.statusCode === 301) {
-          return doGet(res.headers.location);
-        }
-        const total = parseInt(res.headers['content-length'] || '0', 10);
-        res.on('data', (chunk) => {
-          received += chunk.length;
-          file.write(chunk);
-          if (total > 0) {
-            mainWindow.webContents.send('download-progress', {
-              percent: Math.round(received / total * 100),
-              received,
-              total,
-            });
-          }
-        });
-        res.on('end', () => {
-          file.end();
-          file.on('finish', () => {
-            // Tell renderer we're installing before we quit
-            try { win.webContents.send('update-installing'); } catch {}
-            // shell.openPath is the most reliable way to launch an exe on Windows
-            shell.openPath(destPath).then(() => {
-              setTimeout(() => app.quit(), 1500);
-            }).catch(() => {
-              // Fallback: use shell.openItem (older Electron API)
-              try { shell.openItem(destPath); } catch {}
-              setTimeout(() => app.quit(), 1500);
-            });
-            resolve({ success: true, path: destPath });
-          });
-        });
-        res.on('error', reject);
-      }).on('error', reject);
-    }
-
-    doGet(downloadUrl);
-  });
+// Trigger download via electron-updater
+ipcMain.handle('download-update', () => {
+  autoUpdater.downloadUpdate().catch(() => {});
+  return true;
 });
 
-// Expose current version to renderer
-ipcMain.handle('get-version', () => APP_VERSION);
+// Install update and restart
+ipcMain.handle('install-update', () => {
+  autoUpdater.quitAndInstall(false, true);
+});
 
 ipcMain.handle('call-anthropic', async (_, { apiKey, prompt, system }) => {
   return new Promise((resolve, reject) => {

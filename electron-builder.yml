@@ -11,7 +11,9 @@ files:
   - preload.js
   - src/**
   - assets/**
+  - CHANGELOG.md
   - "!**/*.map"
+  - "!secrets.json"
 
 win:
   target: nsis
@@ -27,3 +29,9 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   license: LICENSE.txt
+
+publish:
+  provider: github
+  owner: MisterMooses
+  repo: flowboard
+  releaseType: release
