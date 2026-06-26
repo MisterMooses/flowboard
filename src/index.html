@@ -683,24 +683,27 @@ body.light #cal-bubble.flip-left::after { border-left-color:var(--surface); }
 .card-due {
   font-size:11px; color:var(--text-muted);
   display:flex; align-items:center; gap:3px;
-  background:none; border:none; cursor:pointer; font-family:inherit;
-  padding:0; border-radius:3px;
-  transition:color 0.1s;
+  background:var(--surface3); border:0.5px solid var(--border2);
+  cursor:pointer; font-family:inherit;
+  padding:2px 7px 2px 5px; border-radius:4px;
+  transition:background 0.1s, color 0.1s, border-color 0.1s;
 }
-.card-due:hover { color:var(--text); }
-.card-due.overdue { color:#F87171; }
-.card-due.overdue:hover { color:#F87171; }
-.card-due.soon { color:#F59E0B; }
-.card-due.soon:hover { color:#F59E0B; }
-body.light .card-due.overdue { color:#DC2626; }
-body.light .card-due.soon { color:#B45309; }
+.card-due:hover { color:var(--text); background:var(--surface2); border-color:var(--accent); }
+.card-due.overdue { color:#F87171; background:rgba(248,113,113,0.1); border-color:rgba(248,113,113,0.3); }
+.card-due.overdue:hover { background:rgba(248,113,113,0.18); border-color:rgba(248,113,113,0.5); }
+.card-due.soon { color:#F59E0B; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3); }
+.card-due.soon:hover { background:rgba(245,158,11,0.18); border-color:rgba(245,158,11,0.5); }
+body.light .card-due { background:var(--surface3); }
+body.light .card-due.overdue { color:#DC2626; background:rgba(220,38,38,0.08); border-color:rgba(220,38,38,0.25); }
+body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); border-color:rgba(180,83,9,0.25); }
 /* "Add due date" button when no date set */
 .card-add-due {
-  background:none; border:none; cursor:pointer; font-family:inherit;
+  background:none; border:0.5px dashed var(--border2); cursor:pointer; font-family:inherit;
   font-size:11px; color:var(--text-dim); display:flex; align-items:center; gap:3px;
-  padding:0; border-radius:3px; transition:color 0.1s;
+  padding:2px 7px 2px 5px; border-radius:4px;
+  transition:background 0.1s, color 0.1s, border-color 0.1s;
 }
-.card-add-due:hover { color:var(--text-muted); }
+.card-add-due:hover { color:var(--text-muted); background:var(--surface3); border-color:var(--border2); border-style:solid; }
 
 /* TOOLTIP */
 .fb-tooltip { position:fixed; z-index:9999; pointer-events:none; background:#0a0c13; border:0.5px solid var(--border2); color:var(--text); font-size:11px; font-family:'Inter',sans-serif; padding:4px 9px; border-radius:5px; white-space:nowrap; opacity:0; transition:opacity 0.12s; }
