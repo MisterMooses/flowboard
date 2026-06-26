@@ -982,10 +982,10 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
           </svg>
         </button>
         <button class="sidebar-pill" id="tags-btn" data-tip="Manage tags">
-          <!-- Tag/label icon: rectangle with pointed right end and dot -->
+          <!-- Tag icon: symmetric label shape, left-anchored with pointed right tip -->
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1.5 2.5h5.8a1 1 0 0 1 .7.3l3.8 3.8a1 1 0 0 1 0 1.4l-3.3 3.3a1 1 0 0 1-1.4 0L3.3 7.5 1.5 7V3.5a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
-            <circle cx="5" cy="5" r="0.8" fill="currentColor"/>
+            <path d="M1.5 4a1 1 0 0 1 1-1h5.3a1 1 0 0 1 .7.3l3.7 3a1 1 0 0 1 0 1.4l-3.7 3a1 1 0 0 1-.7.3H2.5a1 1 0 0 1-1-1V4z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+            <circle cx="4.5" cy="7" r="1" stroke="currentColor" stroke-width="1"/>
           </svg>
         </button>
         <button class="sidebar-pill" id="archive-btn" data-tip="Archive">
@@ -1672,6 +1672,11 @@ window.deleteTask = async function(id) {
   if (isParent && !confirm('This is a stack parent. Delete it and all ' + getChildren(id).length + ' subtasks?')) return;
   /* Remove task and any children */
   tasks = tasks.filter(function(t){ return t.id !== id && t.parentId !== id; });
+  /* If the active tag filter is now unused, clear it */
+  if (activeTagFilter) {
+    var stillUsed = tasks.some(function(t){ return (t.tags||[]).map(function(x){return x.toLowerCase();}).indexOf(activeTagFilter) !== -1; });
+    if (!stillUsed) activeTagFilter = null;
+  }
   await window.flowboard.saveTasks(tasks);
   renderBoard();
 };
@@ -2007,6 +2012,8 @@ window.deleteTag = async function(name) {
     });
     await window.flowboard.saveTasks(tasks);
   }
+  /* If this was the active tag filter, clear it so the board isn't stuck empty */
+  if (activeTagFilter === name) activeTagFilter = null;
   delete tagDefs[name];
   await saveTags();
   renderBoard();
