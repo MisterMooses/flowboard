@@ -566,6 +566,7 @@ body.light .stack-children { border-left-color:var(--border2); }
   backdrop-filter:blur(0px);
   -webkit-backdrop-filter:blur(0px);
   opacity:1;
+  pointer-events:none;
   transition:backdrop-filter 0.5s ease-out, -webkit-backdrop-filter 0.5s ease-out, opacity 0.5s ease-out;
 }
 #launch-blur.revealing {
@@ -1517,8 +1518,8 @@ function sortedTasks(arr) {
 }
 
 function visibleTasks() {
-  return tasks.filter(function(t) {
-    if (t.archived) return false; /* never show archived tasks on the board */
+  var filtered = tasks.filter(function(t) {
+    if (t.archived) return false;
     if (activeFilter === 'hold' && !t.onHold) return false;
     if (activeFilter !== 'all' && activeFilter !== 'hold' && t.priority !== activeFilter) return false;
     if (activeTagFilter) {
@@ -1530,7 +1531,7 @@ function visibleTasks() {
       var selfMatch = t.title.toLowerCase().indexOf(q) !== -1 ||
                       (t.tags || []).some(function(tag){ return tag.toLowerCase().indexOf(q) !== -1; });
       if (selfMatch) return true;
-      /* For stack parents: also match when any child title or tag matches the query */
+      /* Parent matches if any child matches */
       if (!t.parentId) {
         return getChildren(t.id).some(function(child) {
           return child.title.toLowerCase().indexOf(q) !== -1 ||
@@ -1541,6 +1542,26 @@ function visibleTasks() {
     }
     return true;
   });
+
+  /* Ensure parents of any visible children are also included.
+     Without this, a child that passes the filter is in visible[] but
+     renderBoard() drops it (children never render directly), and the
+     parent may not have matched the filter itself. */
+  if (searchQuery) {
+    var visibleIds = {};
+    filtered.forEach(function(t){ visibleIds[t.id] = true; });
+    filtered.forEach(function(t) {
+      if (t.parentId && !visibleIds[t.parentId]) {
+        var parent = tasks.find(function(p){ return p.id === t.parentId; });
+        if (parent && !parent.archived) {
+          filtered.push(parent);
+          visibleIds[parent.id] = true;
+        }
+      }
+    });
+  }
+
+  return filtered;
 }
 
 /* ── Stack helpers ── */
@@ -2841,7 +2862,7 @@ function buildStandupText() {
 
 
 /* ── Launch animation ── */
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
   document.body.classList.add('launching');
 
   /* After a short hold, start the reveal */
@@ -2859,7 +2880,7 @@ function buildStandupText() {
       document.body.classList.remove('launching', 'reveal');
     }, 550);
   }, 1500);
-})();
+});
 
 
 /* ── Calendar bubble ── */
@@ -3357,9 +3378,19 @@ document.getElementById('cmd-input').addEventListener('input', function() {
   this.style.height = Math.min(this.scrollHeight, 90) + 'px';
 });
 document.getElementById('cmd-btn').addEventListener('click', addTask);
-document.getElementById('search-input').addEventListener('input', function() {
-  searchQuery = this.value.trim(); renderBoard();
-});
+(function() {
+  var searchEl = document.getElementById('search-input');
+  function handleSearch() {
+    var val = searchEl.value.trim();
+    if (val !== searchQuery) {
+      searchQuery = val;
+      renderBoard();
+    }
+  }
+  searchEl.addEventListener('input', handleSearch);
+  searchEl.addEventListener('keyup', handleSearch);
+  searchEl.addEventListener('change', handleSearch);
+})();
 document.querySelectorAll('.sidebar-filter[data-filter]').forEach(function(btn) {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.sidebar-filter[data-filter]').forEach(function(b){ b.classList.remove('active'); });

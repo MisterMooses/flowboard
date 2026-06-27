@@ -1,5 +1,14 @@
 # Flowboard Changelog
 
+## v1.5.10
+### Bug Fixes
+- **Board search now reliably filters cards.** Added keyup and change event listeners alongside the existing input listener to ensure the search handler fires regardless of how input is delivered in Electron's renderer (direct typing, paste, autocomplete). Search now triggers on any value change.
+
+## v1.5.9
+### Bug Fixes
+- **Board search bar now accepts input.** The launch animation overlay was not being removed from the DOM reliably because the cleanup code ran before the DOM was fully ready, leaving an invisible element blocking all clicks on the board. Fixed by wrapping the launch animation in a DOMContentLoaded listener and adding pointer-events:none to the blur layer as a safety net.
+- **Board search now filters cards correctly.** Search results were being silently discarded because child tasks that matched the query passed the filter but were never rendered (children only render inside their parent's stack). Fixed: when a child matches, its parent is now guaranteed to appear in the visible set so the stack renders and the matching child is visible within it.
+
 ## v1.5.8
 ### Bug Fixes
 - **Board search now works correctly.** Three issues fixed: (1) the "On Hold" priority filter was short-circuiting the filter pipeline and ignoring the search query entirely; (2) searching for text in a child task title or tag within a stack had no effect because only the parent title was checked — stacks now surface in results when any child matches; (3) the task count badge always showed the total unfiltered count, giving no visual feedback that search was doing anything. Archived tasks continue to be excluded from board search results (use the Archive drawer's own search for those).
