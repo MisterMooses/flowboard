@@ -610,7 +610,7 @@ body.launching.reveal #cmd-zone {
   position:fixed; z-index:210; width:248px;
   background:var(--surface); border:0.5px solid var(--border2);
   border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.35);
-  display:none; flex-direction:column; overflow:hidden;
+  display:none; flex-direction:column; overflow:visible;
   opacity:0; transform:scale(0.96) translateX(-4px);
   transition:opacity 0.12s, transform 0.12s;
 }
@@ -654,7 +654,8 @@ body.launching.reveal #cmd-zone {
 }
 #cal-clear:hover { background:var(--surface3); color:var(--danger); }
 
-#cal-grid { padding:6px 8px 10px; }
+#cal-grid { padding:6px 8px 10px; overflow:hidden; border-radius:0 0 10px 10px; }
+#cal-header { overflow:hidden; border-radius:10px 10px 0 0; }
 .cal-dow-row {
   display:grid; grid-template-columns:repeat(7,1fr);
   margin-bottom:3px;
@@ -939,6 +940,53 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
   100% { width:0%;   margin-left:100%; }
 }
 
+
+/* PRIORITY PICKER BUBBLE */
+#priority-bubble {
+  position:fixed; z-index:210; width:160px;
+  background:var(--surface); border:0.5px solid var(--border2);
+  border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.35);
+  display:none; flex-direction:column; overflow:visible;
+  opacity:0; transform:scale(0.96) translateX(-4px);
+  transition:opacity 0.12s, transform 0.12s;
+}
+#priority-bubble.open { display:flex; opacity:1; transform:scale(1) translateX(0); }
+#priority-bubble::before {
+  content:''; position:absolute; left:-8px; top:18px;
+  width:0; height:0;
+  border-top:8px solid transparent; border-bottom:8px solid transparent;
+  border-right:8px solid var(--border2);
+}
+#priority-bubble::after {
+  content:''; position:absolute; left:-6.5px; top:19px;
+  width:0; height:0;
+  border-top:7px solid transparent; border-bottom:7px solid transparent;
+  border-right:7px solid var(--surface);
+}
+#priority-bubble.flip-left::before { left:auto; right:-8px; border-right:none; border-left:8px solid var(--border2); }
+#priority-bubble.flip-left::after  { left:auto; right:-6.5px; border-right:none; border-left:7px solid var(--surface); }
+#priority-bubble-header {
+  padding:8px 12px 7px; border-bottom:0.5px solid var(--border);
+  font-size:11px; font-weight:600; color:var(--text-dim);
+  text-transform:uppercase; letter-spacing:0.07em;
+  border-radius:10px 10px 0 0;
+}
+.priority-option {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 12px; cursor:pointer; font-size:12px;
+  font-family:inherit; background:none; border:none; width:100%;
+  text-align:left; transition:background 0.1s; color:var(--text-muted);
+}
+.priority-option:hover { background:var(--surface2); }
+.priority-option:last-child { border-radius:0 0 10px 10px; }
+.priority-option-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+}
+.priority-option.active { background:var(--accent-dim); color:var(--accent); font-weight:600; border-left:2px solid var(--accent); }
+body.light #priority-bubble { box-shadow:0 8px 32px rgba(0,0,0,0.14); }
+body.light #priority-bubble::after { border-right-color:var(--surface); }
+body.light #priority-bubble.flip-left::after { border-left-color:var(--surface); }
+
 /* TOOLTIP */
 .fb-tooltip { position:fixed; z-index:9999; pointer-events:none; background:#0a0c13; border:0.5px solid var(--border2); color:var(--text); font-size:11px; font-family:'Inter',sans-serif; padding:4px 9px; border-radius:5px; white-space:nowrap; opacity:0; transition:opacity 0.12s; }
 .fb-tooltip.visible { opacity:1; }
@@ -1222,6 +1270,23 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
       </div>
     </div>
   </div>
+</div>
+
+<!-- Priority Picker Bubble -->
+<div id="priority-bubble" role="dialog" aria-label="Change priority">
+  <div id="priority-bubble-header">Priority</div>
+  <button class="priority-option" data-priority="critical" onclick="pickPriority('critical')">
+    <span class="priority-option-dot" style="background:#EF4444"></span>Critical
+  </button>
+  <button class="priority-option" data-priority="high" onclick="pickPriority('high')">
+    <span class="priority-option-dot" style="background:#6C63FF"></span>High
+  </button>
+  <button class="priority-option" data-priority="medium" onclick="pickPriority('medium')">
+    <span class="priority-option-dot" style="background:#F59E0B"></span>Medium
+  </button>
+  <button class="priority-option" data-priority="low" onclick="pickPriority('low')">
+    <span class="priority-option-dot" style="background:#64748B"></span>Low
+  </button>
 </div>
 
 <!-- Calendar Bubble -->
@@ -1629,7 +1694,7 @@ function renderCard(t) {
   var isParent = getChildren(t.id).length > 0;
   var parentCls = isParent ? ' stack-parent' : '';
   var pb = PRIORITY_BADGE[t.priority] || PRIORITY_BADGE.low;
-  var priorityHtml = '<div class="priority-row"><span class="priority-badge ' + pb.cls + '"><i class="ti ' + pb.icon + '"></i>' + pb.label + '</span></div>';
+  var priorityHtml = '<div class="priority-row"><span class="priority-badge ' + pb.cls + '" onclick="openPriorityPicker(event,\'' + t.id + '\')" style="cursor:pointer" data-tip="Change priority"><i class="ti ' + pb.icon + '"></i>' + pb.label + '</span></div>';
   var tagsHtml = '';
   if (t.tags && t.tags.length) {
     tagsHtml = '<div class="card-tags">';
@@ -1746,7 +1811,7 @@ function renderBoard() {
     document.getElementById('stat-' + col).textContent = colCount;
   });
   document.getElementById('stat-hold').textContent = tasks.filter(function(t){ return !!t.onHold; }).length;
-  var total = visible.filter(function(t){ return !t.parentId; }).length;
+  var total = tasks.filter(function(t){ return !t.parentId && !t.archived; }).length;
   document.getElementById('task-count-badge').textContent = total + ' task' + (total !== 1 ? 's' : '');
   renderSidebarTags();
   renderWeeklySummary();
@@ -3335,6 +3400,68 @@ async function applyAutoArchive() {
     renderBoard();
   }
 }
+
+
+/* ── Priority picker bubble ── */
+var priorityTaskId = null;
+
+window.openPriorityPicker = function(e, id) {
+  e.stopPropagation();
+  var bubble = document.getElementById('priority-bubble');
+  if (bubble.classList.contains('open') && priorityTaskId === id) {
+    closePriorityPicker(); return;
+  }
+  priorityTaskId = id;
+  var task = tasks.find(function(t){ return t.id === id; });
+
+  /* Mark active option */
+  bubble.querySelectorAll('.priority-option').forEach(function(btn) {
+    btn.classList.toggle('active', task && btn.dataset.priority === task.priority);
+  });
+
+  /* Position — same logic as notes/calendar */
+  var btn = e.currentTarget;
+  var rect = btn.getBoundingClientRect();
+  var bw = 160, bh = 180;
+  var top = rect.top - 18;
+  var left = rect.right + 10;
+  if (left + bw > window.innerWidth - 12) {
+    left = rect.left - bw - 10;
+    bubble.classList.add('flip-left');
+  } else {
+    bubble.classList.remove('flip-left');
+  }
+  if (top + bh > window.innerHeight - 12) top = window.innerHeight - bh - 12;
+  if (top < 8) top = 8;
+  bubble.style.top = top + 'px';
+  bubble.style.left = left + 'px';
+  bubble.classList.add('open');
+};
+
+function closePriorityPicker() {
+  document.getElementById('priority-bubble').classList.remove('open');
+  priorityTaskId = null;
+}
+
+window.pickPriority = async function(priority) {
+  if (!priorityTaskId) return;
+  var task = tasks.find(function(t){ return t.id === priorityTaskId; });
+  if (!task) return;
+  task.priority = priority;
+  closePriorityPicker();
+  await window.flowboard.saveTasks(tasks);
+  renderBoard(); /* re-sort by new priority */
+};
+
+document.addEventListener('mousedown', function(e) {
+  var bubble = document.getElementById('priority-bubble');
+  if (bubble && bubble.classList.contains('open') && !bubble.contains(e.target)) {
+    if (!e.target.closest('.priority-badge')) closePriorityPicker();
+  }
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closePriorityPicker();
+});
 
 /* ── Tooltip engine ── */
 var tip = document.createElement('div');

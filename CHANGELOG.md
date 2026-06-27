@@ -1,5 +1,17 @@
 # Flowboard Changelog
 
+## v1.5.16
+### Improvements
+- **Standardized active/selected highlighting.** Priority picker active state now uses the same accent-purple pattern (tinted background, accent color, accent border) used by sidebar filters, pill buttons, day toggles, and calendar selections throughout the app.
+
+## v1.5.15
+### New Features
+- **Priority picker:** Clicking the priority badge on a card opens a popout bubble to change the priority. Matches the style of the notes and calendar popouts with a CSS arrow indicator.
+### Bug Fixes
+- **Calendar popout arrow now visible.** The arrow was being clipped by overflow:hidden on the calendar bubble.
+- **Task count badge now shows total tasks.** Previously counted only visible (filtered) tasks instead of all non-archived tasks, causing a mismatch with column counters when filters were active.
+- **Cards re-sort immediately** when priority or due date is changed.
+
 ## v1.5.14
 ### Bug Fixes
 - **Calendar due date picker now renders correctly in dark mode.** Day cells were displaying with a white browser-default button background instead of transparent, causing blazing white boxes with low-contrast text. Fixed by explicitly setting background:transparent on calendar day buttons.
