@@ -985,16 +985,17 @@ body.light #priority-bubble.flip-left::after { border-left-color:var(--surface);
 
 /* ── Card info row: due date + priority on same line ── */
 .card-info-row {
-  display:flex; align-items:center; gap:6px; margin-top:7px;
+  display:flex; align-items:center; gap:4px; margin-top:7px;
 }
+.card-info-row .card-info-notes { margin-left:auto; }
 .card-due {
   font-size:11px; color:var(--text-muted);
-  display:flex; align-items:center; gap:3px;
+  display:inline-flex; align-items:center; gap:3px;
   background:var(--surface3); border:0.5px solid var(--border2);
   cursor:pointer; font-family:inherit;
-  padding:2px 7px 2px 5px; border-radius:4px;
+  padding:2px 8px 2px 6px; border-radius:4px;
   transition:background 0.1s, color 0.1s, border-color 0.1s;
-  width:86px; flex-shrink:0; white-space:nowrap; overflow:hidden;
+  min-width:72px; max-width:90px; flex-shrink:0; white-space:nowrap;
 }
 .card-due:hover { color:var(--text); background:var(--surface2); border-color:var(--accent); }
 .card-due.overdue { color:#F87171; background:rgba(248,113,113,0.1); border-color:rgba(248,113,113,0.3); }
@@ -1006,9 +1007,9 @@ body.light .card-due.overdue { color:#DC2626; background:rgba(220,38,38,0.08); b
 body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); border-color:rgba(180,83,9,0.25); }
 .card-add-due {
   background:none; border:0.5px dashed var(--border2); cursor:pointer; font-family:inherit;
-  font-size:11px; color:var(--text-dim); display:flex; align-items:center; gap:3px;
-  padding:2px 7px 2px 5px; border-radius:4px;
-  width:86px; flex-shrink:0; white-space:nowrap;
+  font-size:11px; color:var(--text-dim); display:inline-flex; align-items:center; gap:3px;
+  padding:2px 8px 2px 6px; border-radius:4px;
+  min-width:72px; flex-shrink:0; white-space:nowrap;
   transition:background 0.1s, color 0.1s, border-color 0.1s;
 }
 .card-add-due:hover { color:var(--text-muted); background:var(--surface3); border-color:var(--border2); border-style:solid; }
@@ -1042,7 +1043,7 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
   border-radius:10px;
   box-shadow:0 24px 64px rgba(0,0,0,0.45);
   width:min(860px, calc(100vw - 48px));
-  max-height:calc(100vh - var(--titlebar-h) - 48px);
+  height:min(680px, calc(100vh - var(--titlebar-h) - 48px));
   margin-top:24px;
   display:flex; flex-direction:column;
   overflow:hidden;
@@ -1156,11 +1157,12 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
 body.light .sheet-action-btn.complete-active { color:#059669; border-color:rgba(5,150,105,0.4); background:rgba(5,150,105,0.08); }
 /* Right panel — notes */
 #sheet-right {
-  flex:1; display:flex; flex-direction:column; overflow:hidden; padding:16px 18px;
+  flex:1; display:flex; flex-direction:column; overflow:hidden; padding:16px 18px 14px;
+  min-height:0;
 }
 #sheet-notes-log {
   flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px;
-  margin-bottom:12px;
+  margin-bottom:12px; min-height:0;
 }
 #sheet-notes-log::-webkit-scrollbar { width:3px; }
 #sheet-notes-log::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:2px; }
@@ -1181,6 +1183,26 @@ body.light .sheet-action-btn.complete-active { color:#059669; border-color:rgba(
 }
 #sheet-note-save:hover { opacity:0.88; }
 body.light #sheet-panel { box-shadow:0 24px 64px rgba(0,0,0,0.18); }
+
+
+/* Soft-deleted notes */
+.note-entry.deleted-note {
+  border-left:2px solid #EF4444;
+  background:rgba(239,68,68,0.07);
+  border-radius:0 5px 5px 0;
+  padding:5px 8px 5px 9px;
+  opacity:0.75;
+}
+body.light .note-entry.deleted-note { background:rgba(220,38,38,0.07); border-left-color:#DC2626; }
+.note-entry.deleted-note .note-text { text-decoration:line-through; color:var(--text-dim); }
+.note-delete-tag {
+  font-size:9px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+  color:#EF4444; background:rgba(239,68,68,0.15); border:0.5px solid rgba(239,68,68,0.4);
+  padding:1px 6px; border-radius:3px; flex-shrink:0; cursor:pointer;
+  transition:background 0.1s;
+}
+.note-delete-tag:hover { background:rgba(239,68,68,0.25); }
+body.light .note-delete-tag { color:#DC2626; background:rgba(220,38,38,0.1); border-color:rgba(220,38,38,0.35); }
 
 /* TOOLTIP */
 .fb-tooltip { position:fixed; z-index:9999; pointer-events:none; background:#0a0c13; border:0.5px solid var(--border2); color:var(--text); font-size:11px; font-family:'Inter',sans-serif; padding:4px 9px; border-radius:5px; white-space:nowrap; opacity:0; transition:opacity 0.12s; }
@@ -1463,6 +1485,18 @@ body.light #sheet-panel { box-shadow:0 24px 64px rgba(0,0,0,0.18); }
           <button class="settings-inline-save" id="settings-archive-save">Save</button>
         </div>
       </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+        <div style="font-size:12px;color:var(--text-muted);">Work hours</div>
+        <div style="font-size:11px;color:var(--text-dim);line-height:1.5;">Your typical work start and end times. Used by AI for scheduling tasks accurately within your available hours.</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <label style="font-size:11px;color:var(--text-muted)">Start</label>
+          <input class="settings-input" id="settings-work-start" type="time" value="08:00" style="width:110px;padding:5px 8px">
+          <label style="font-size:11px;color:var(--text-muted)">End</label>
+          <input class="settings-input" id="settings-work-end" type="time" value="17:00" style="width:110px;padding:5px 8px">
+          <button class="settings-inline-save" id="settings-hours-save">Save</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1510,6 +1544,25 @@ body.light #sheet-panel { box-shadow:0 24px 64px rgba(0,0,0,0.18); }
           <div class="sheet-section-label">Due Date</div>
           <div id="sheet-due-wrap"></div>
         </div>
+        <!-- Time (sheet only) -->
+        <div id="sheet-time-section">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            <div class="sheet-section-label" style="margin-bottom:0;flex:1">Time</div>
+            <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);cursor:pointer">
+              <input type="checkbox" id="sheet-allday-toggle" style="accent-color:var(--accent)"> All day
+            </label>
+          </div>
+          <div id="sheet-time-inputs" style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <label style="font-size:10px;color:var(--text-dim);width:32px">Start</label>
+              <input type="time" id="sheet-start-time" class="settings-input" style="flex:1;padding:4px 6px;font-size:11px">
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <label style="font-size:10px;color:var(--text-dim);width:32px">End</label>
+              <input type="time" id="sheet-end-time" class="settings-input" style="flex:1;padding:4px 6px;font-size:11px">
+            </div>
+          </div>
+        </div>
         <!-- Priority -->
         <div>
           <div class="sheet-section-label">Priority</div>
@@ -1530,21 +1583,28 @@ body.light #sheet-panel { box-shadow:0 24px 64px rgba(0,0,0,0.18); }
         </div>
         <!-- Tags -->
         <div>
-          <div class="sheet-section-label">Tags</div>
-          <div id="sheet-tags-wrap"></div>
-          <div id="sheet-tag-add-wrap">
-            <input id="sheet-tag-input" type="text" placeholder="Add tag...">
-            <button id="sheet-tag-add-btn">Add</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div class="sheet-section-label" style="margin-bottom:0">Tags</div>
+            <button id="sheet-tag-picker-btn" data-tip="Add existing tag" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:2px 4px;border-radius:4px;font-size:16px;line-height:1;transition:color 0.12s,background 0.12s" onmouseover="this.style.color='var(--accent)';this.style.background='var(--accent-dim)'" onmouseout="this.style.color='var(--text-dim)';this.style.background='none'">+</button>
           </div>
+          <div id="sheet-tags-wrap"></div>
+          <!-- Existing tag picker popout -->
+          <div id="sheet-tag-picker" style="display:none;flex-wrap:wrap;gap:4px;margin-top:6px;padding:6px;background:var(--surface3);border-radius:6px;max-height:120px;overflow-y:auto"></div>
         </div>
         <!-- Actions -->
-        <div id="sheet-actions"></div>
+        <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px">
+          <div id="sheet-tag-add-wrap" style="display:flex;gap:4px">
+            <input id="sheet-tag-input" type="text" placeholder="New tag...">
+            <button id="sheet-tag-add-btn">Add</button>
+          </div>
+          <div id="sheet-actions"></div>
+        </div>
       </div>
       <div id="sheet-right">
         <div class="sheet-section-label">Notes</div>
         <div id="sheet-notes-log"></div>
         <div id="sheet-note-input-wrap">
-          <textarea id="sheet-note-textarea" placeholder="Add a progress note... (Ctrl+Enter to save)"></textarea>
+          <textarea id="sheet-note-textarea" placeholder="Add a progress note... (Enter to save, Shift+Enter for new line)"></textarea>
           <button id="sheet-note-save">Save Note</button>
         </div>
       </div>
@@ -1983,8 +2043,8 @@ function renderCard(t) {
   return '<div class="card' + holdCls + doneCls + parentCls + '" data-id="' + escHtml(t.id) + '" draggable="true" onclick="handleCardClick(event,\'' + t.id + '\')">'
     + '<div class="card-bar" style="background:' + bar + '"></div>'
     + '<div class="card-title">' + escHtml(t.title) + '</div>'
-    + tagsHtml
     + cardMetaAndActions(t)
+    + tagsHtml
     + stackHtml
     + '</div>';
 }
@@ -2305,7 +2365,11 @@ async function addTask() {
     + 'return { "action": "make-stack", "targetTitle": "partial title to match", "children": [task objects] }\n'
     + '  (c) ADD TO STACK: user says "add subtask to [stack]", "add to [task] stack: ..." → '
     + 'return { "action": "add-to-stack", "targetTitle": "partial title", "children": [task objects] }\n'
-    + 'Current task titles for reference: ' + tasks.map(function(t){ return '"' + t.title + '"'; }).join(', ');
+    + 'Current task titles for reference: ' + tasks.map(function(t){ return '"' + t.title + '"'; }).join(', ') + '\n\n'
+    + 'Work hours: ' + (config.workStart || '08:00') + ' to ' + (config.workEnd || '17:00') + '. '
+    + 'When estimating workload and scheduling tasks, factor in these hours. '
+    + 'Prefer scheduling time-sensitive tasks early in the day and lighter tasks later. '
+    + 'If a task has startTime/endTime fields, respect those when evaluating remaining capacity for that day.';
 
   try {
     var raw = await window.flowboard.callAnthropic({ apiKey: config.apiKey, prompt: text, system: systemPrompt });
@@ -2890,6 +2954,57 @@ function closeNotes() {
   }
 }
 
+function noteHtml(task, n, idx, context) {
+  /* context: 'bubble' or 'sheet' */
+  var d = new Date(n.ts);
+  var label = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+    + ' ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  var isHold = !!n.isHold;
+  var isDeleted = !!n.deleted;
+  var entryCls = 'note-entry' + (isHold ? ' hold-note' : '') + (isDeleted ? ' deleted-note' : '');
+  var deleteTag = isDeleted
+    ? '<span class="note-delete-tag" onclick="restoreNote(\'' + task.id + '\',' + idx + ',\'' + context + '\')">Restore</span>'
+    : '<span class="note-delete-tag" onclick="softDeleteNote(\'' + task.id + '\',' + idx + ',\'' + context + '\')">Delete</span>';
+  var tsRow = '<div class="note-ts-row">'
+    + '<span class="note-ts">' + label + '</span>'
+    + (isHold ? '<span class="note-hold-tag">On Hold</span>' : '')
+    + deleteTag
+    + '</div>';
+  return '<div class="' + entryCls + '">'
+    + tsRow
+    + '<div class="note-text">' + escHtml(n.text) + '</div>'
+    + '</div>';
+}
+
+window.softDeleteNote = async function(taskId, idx, context) {
+  var task = tasks.find(function(t){ return t.id === taskId; });
+  if (!task || !task.notes || !task.notes[idx]) return;
+  /* idx is from the reversed array — convert back to original index */
+  var origIdx = task.notes.length - 1 - idx;
+  task.notes[origIdx].deleted = true;
+  await window.flowboard.saveTasks(tasks);
+  if (context === 'sheet') {
+    renderSheetNotes(task);
+  } else {
+    renderNotesList(task);
+  }
+  renderBoard();
+};
+
+window.restoreNote = async function(taskId, idx, context) {
+  var task = tasks.find(function(t){ return t.id === taskId; });
+  if (!task || !task.notes || !task.notes[idx]) return;
+  var origIdx = task.notes.length - 1 - idx;
+  delete task.notes[origIdx].deleted;
+  await window.flowboard.saveTasks(tasks);
+  if (context === 'sheet') {
+    renderSheetNotes(task);
+  } else {
+    renderNotesList(task);
+  }
+  renderBoard();
+};
+
 function renderNotesList(task) {
   var log = document.getElementById('notes-log');
   var notes = task.notes || [];
@@ -2897,21 +3012,8 @@ function renderNotesList(task) {
     log.innerHTML = '<div id="notes-empty">No notes yet. Add your first progress note below.</div>';
     return;
   }
-  log.innerHTML = notes.slice().reverse().map(function(n) {
-    var d = new Date(n.ts);
-    var label = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
-      + ' ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-    var isHold = !!n.isHold;
-    var entryCls = isHold ? 'note-entry hold-note' : 'note-entry';
-    var tsRow = '<div class="note-ts-row">'
-      + '<span class="note-ts">' + label + '</span>'
-      + (isHold ? '<span class="note-hold-tag">On Hold</span>' : '')
-      + '</div>';
-    return '<div class="' + entryCls + '">'
-      + tsRow
-      + '<div class="note-text">' + escHtml(n.text) + '</div>'
-      + '</div>';
-  }).join('');
+  var reversed = notes.slice().reverse();
+  log.innerHTML = reversed.map(function(n, i){ return noteHtml(task, n, i, 'bubble'); }).join('');
 }
 
 async function saveNote() {
@@ -3551,6 +3653,12 @@ function loadSettingsDrawer() {
   var archInput = document.getElementById('settings-archive-days');
   if (archInput) archInput.value = config.autoArchiveDays || 0;
 
+  /* Work hours */
+  var wsEl = document.getElementById('settings-work-start');
+  var weEl = document.getElementById('settings-work-end');
+  if (wsEl) wsEl.value = config.workStart || '08:00';
+  if (weEl) weEl.value = config.workEnd || '17:00';
+
   /* Changelog */
   loadChangelogSection();
 }
@@ -3817,19 +3925,11 @@ function renderSheetNotes(task) {
   var log = document.getElementById('sheet-notes-log');
   var notes = task.notes || [];
   if (!notes.length) {
-    log.innerHTML = '<div id="sheet-notes-empty">No notes yet.</div>';
+    log.innerHTML = '<div id="sheet-notes-empty" style="font-size:12px;color:var(--text-dim);text-align:center;padding:20px 0;font-style:italic">No notes yet.</div>';
     return;
   }
-  log.innerHTML = notes.slice().reverse().map(function(n) {
-    var d = new Date(n.ts);
-    var label = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
-      + ' ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-    var isHold = !!n.isHold;
-    var entryCls = isHold ? 'note-entry hold-note' : 'note-entry';
-    var tsRow = '<div class="note-ts-row"><span class="note-ts">' + label + '</span>'
-      + (isHold ? '<span class="note-hold-tag">On Hold</span>' : '') + '</div>';
-    return '<div class="' + entryCls + '">' + tsRow + '<div class="note-text">' + escHtml(n.text) + '</div></div>';
-  }).join('');
+  var reversed = notes.slice().reverse();
+  log.innerHTML = reversed.map(function(n, i){ return noteHtml(task, n, i, 'sheet'); }).join('');
 }
 
 /* Sheet actions */
@@ -3942,7 +4042,7 @@ async function sheetAddTag() {
 /* Note save from sheet */
 document.getElementById('sheet-note-save').addEventListener('click', sheetSaveNote);
 document.getElementById('sheet-note-textarea').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sheetSaveNote(); }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sheetSaveNote(); }
 });
 
 async function sheetSaveNote() {
@@ -3986,6 +4086,102 @@ window.pickDate = async function(dateStr) {
   }
 };
 document.getElementById('sheet-close').addEventListener('click', closeSheet);
+
+
+/* ── Sheet tag picker ── */
+document.getElementById('sheet-tag-picker-btn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  var picker = document.getElementById('sheet-tag-picker');
+  var isOpen = picker.style.display !== 'none';
+  if (isOpen) {
+    picker.style.display = 'none';
+    return;
+  }
+  if (!sheetTaskId) return;
+  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+  var existingTags = (task && task.tags) ? task.tags.map(function(t){ return t.toLowerCase(); }) : [];
+  var allTags = Object.keys(tagDefs).concat(Object.keys(DEFAULT_TAGS)).filter(function(t,i,a){ return a.indexOf(t)===i; }).sort();
+  var available = allTags.filter(function(t){ return existingTags.indexOf(t) === -1; });
+  if (!available.length) {
+    picker.innerHTML = '<span style="font-size:11px;color:var(--text-dim);font-style:italic">All tags already applied</span>';
+  } else {
+    picker.innerHTML = available.map(function(tag) {
+      var s = tagStyleObj(tag);
+      return '<span class="tag" style="background:' + s.bg + ';color:' + s.color + ';cursor:pointer" onclick="sheetPickExistingTag(\'' + escHtml(tag) + '\')">' + escHtml(tag) + '</span>';
+    }).join('');
+  }
+  picker.style.display = 'flex';
+});
+
+window.sheetPickExistingTag = async function(tag) {
+  if (!sheetTaskId) return;
+  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+  if (!task) return;
+  if ((task.tags || []).indexOf(tag) !== -1) return;
+  task.tags = (task.tags || []).concat([tag]);
+  await window.flowboard.saveTasks(tasks);
+  renderBoard();
+  renderSheetTags(task);
+  document.getElementById('sheet-tag-picker').style.display = 'none';
+};
+
+/* Close tag picker on outside click */
+document.addEventListener('mousedown', function(e) {
+  var picker = document.getElementById('sheet-tag-picker');
+  if (picker && picker.style.display !== 'none' &&
+      !e.target.closest('#sheet-tag-picker') &&
+      !e.target.closest('#sheet-tag-picker-btn')) {
+    picker.style.display = 'none';
+  }
+});
+
+/* ── Sheet time fields ── */
+document.getElementById('sheet-allday-toggle').addEventListener('change', function() {
+  document.getElementById('sheet-time-inputs').style.display = this.checked ? 'none' : 'flex';
+  if (!sheetTaskId) return;
+  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+  if (!task) return;
+  task.allDay = this.checked;
+  if (this.checked) { delete task.startTime; delete task.endTime; }
+  window.flowboard.saveTasks(tasks);
+});
+
+function saveSheetTime() {
+  if (!sheetTaskId) return;
+  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+  if (!task) return;
+  var st = document.getElementById('sheet-start-time').value;
+  var et = document.getElementById('sheet-end-time').value;
+  task.startTime = st || null;
+  task.endTime = et || null;
+  window.flowboard.saveTasks(tasks);
+}
+document.getElementById('sheet-start-time').addEventListener('change', saveSheetTime);
+document.getElementById('sheet-end-time').addEventListener('change', saveSheetTime);
+
+/* Populate time fields in renderSheet */
+var _origRenderSheet = renderSheet;
+renderSheet = function(task) {
+  _origRenderSheet(task);
+  /* Time fields */
+  var allDay = !!task.allDay;
+  document.getElementById('sheet-allday-toggle').checked = allDay;
+  document.getElementById('sheet-time-inputs').style.display = allDay ? 'none' : 'flex';
+  document.getElementById('sheet-start-time').value = task.startTime || '';
+  document.getElementById('sheet-end-time').value = task.endTime || '';
+};
+
+/* ── Work hours settings ── */
+document.getElementById('settings-hours-save').addEventListener('click', async function() {
+  var start = document.getElementById('settings-work-start').value;
+  var end = document.getElementById('settings-work-end').value;
+  config.workStart = start || '08:00';
+  config.workEnd = end || '17:00';
+  await window.flowboard.saveConfig(config);
+  var btn = this;
+  btn.textContent = 'Saved!';
+  setTimeout(function(){ btn.textContent = 'Save'; }, 1500);
+});
 
 /* ── Tooltip engine ── */
 var tip = document.createElement('div');

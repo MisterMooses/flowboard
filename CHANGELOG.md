@@ -1,5 +1,16 @@
 # Flowboard Changelog
 
+## v1.6.1
+### Bug Fixes & Improvements
+- **Card view:** Due date + priority info row now appears above tags, not below.
+- **Due date pill:** Width is now content-fit rather than fixed, with priority badge sitting flush against it.
+- **Sheet view — notes:** Sheet panel is now a fixed height (680px max). Notes list scrolls within the panel rather than expanding it.
+- **Sheet view — note input:** Enter now saves a note; Shift+Enter inserts a new line.
+- **Sheet view — tags:** Existing tags can be applied via a + popout picker next to the Tags header. Add tag input moved to bottom of left panel above action buttons.
+- **Sheet view — time scheduling:** Start time, end time, and All Day toggle added to sheet view (below due date, above priority). Not visible on card view.
+- **Soft-delete notes:** Notes in both the card bubble and sheet view can be soft-deleted (red styling + strikethrough) and restored. Notes are never permanently removed from storage.
+- **Settings:** Work hours (start/end time) added to Board Settings. Used by AI for intelligent time-aware scheduling.
+
 ## v1.6.0
 ### New Features
 - **Card Sheet View:** Clicking anywhere on a card (outside buttons) opens a full expanded sheet view. The sheet shows the card title (editable with pencil icon), inline priority selector, due date picker, tag management (add/remove), a full scrollable notes history, and an always-visible note entry box. Complete, Hold, and Archive/Delete actions are also available in the sheet.
