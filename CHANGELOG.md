@@ -1,5 +1,9 @@
 # Flowboard Changelog
 
+## v1.5.14
+### Bug Fixes
+- **Calendar due date picker now renders correctly in dark mode.** Day cells were displaying with a white browser-default button background instead of transparent, causing blazing white boxes with low-contrast text. Fixed by explicitly setting background:transparent on calendar day buttons.
+
 ## v1.5.13
 ### Improvements
 - **Weekly summary "Last Week" now uses a rolling 7-day lookback** instead of the previous Mon–Sun calendar week. Completed tasks and progress notes from the past 7 days always appear in the summary, regardless of what day of the week it is. Ensures Monday and Tuesday work shows up correctly for a Wednesday standup.
