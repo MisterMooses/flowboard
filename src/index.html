@@ -150,11 +150,7 @@ body.light #btn-update:hover { background:rgba(5,150,105,0.10); color:#047857; }
 .card-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:7px; }
 .tag { font-size:10px; font-weight:600; padding:2px 6px; border-radius:4px; letter-spacing:0.04em; text-transform:uppercase; cursor:pointer; transition:opacity 0.12s; }
 .tag:hover { opacity:0.75; }
-.card-meta { display:flex; align-items:center; justify-content:space-between; margin-top:7px; }
-.card-meta-left { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-.card-due { font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:3px; }
-.card-due.overdue { color:#F87171; }
-.card-due.soon { color:#F59E0B; }
+/* card-meta/due styles moved to card-info-row section */
 /* Notes icon button — sits in meta row, right side */
 .card-btn-notes {
   background:none; border:none; cursor:pointer; padding:3px 5px;
@@ -179,8 +175,7 @@ body.light .card-btn:hover { background:#d8ddef; }
 }
 .card-btn-del:hover { color:#F87171; background:rgba(248,113,113,0.1); }
 
-/* PRIORITY BADGE */
-.priority-row { display:flex; align-items:center; gap:6px; margin-top:6px; }
+/* PRIORITY BADGE — row now handled by .card-info-row */
 .priority-badge {
   display:inline-flex; align-items:center; gap:4px;
   font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
@@ -987,6 +982,206 @@ body.light #priority-bubble { box-shadow:0 8px 32px rgba(0,0,0,0.14); }
 body.light #priority-bubble::after { border-right-color:var(--surface); }
 body.light #priority-bubble.flip-left::after { border-left-color:var(--surface); }
 
+
+/* ── Card info row: due date + priority on same line ── */
+.card-info-row {
+  display:flex; align-items:center; gap:6px; margin-top:7px;
+}
+.card-due {
+  font-size:11px; color:var(--text-muted);
+  display:flex; align-items:center; gap:3px;
+  background:var(--surface3); border:0.5px solid var(--border2);
+  cursor:pointer; font-family:inherit;
+  padding:2px 7px 2px 5px; border-radius:4px;
+  transition:background 0.1s, color 0.1s, border-color 0.1s;
+  width:86px; flex-shrink:0; white-space:nowrap; overflow:hidden;
+}
+.card-due:hover { color:var(--text); background:var(--surface2); border-color:var(--accent); }
+.card-due.overdue { color:#F87171; background:rgba(248,113,113,0.1); border-color:rgba(248,113,113,0.3); }
+.card-due.overdue:hover { background:rgba(248,113,113,0.18); border-color:rgba(248,113,113,0.5); }
+.card-due.soon { color:#F59E0B; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3); }
+.card-due.soon:hover { background:rgba(245,158,11,0.18); border-color:rgba(245,158,11,0.5); }
+body.light .card-due { background:var(--surface3); }
+body.light .card-due.overdue { color:#DC2626; background:rgba(220,38,38,0.08); border-color:rgba(220,38,38,0.25); }
+body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); border-color:rgba(180,83,9,0.25); }
+.card-add-due {
+  background:none; border:0.5px dashed var(--border2); cursor:pointer; font-family:inherit;
+  font-size:11px; color:var(--text-dim); display:flex; align-items:center; gap:3px;
+  padding:2px 7px 2px 5px; border-radius:4px;
+  width:86px; flex-shrink:0; white-space:nowrap;
+  transition:background 0.1s, color 0.1s, border-color 0.1s;
+}
+.card-add-due:hover { color:var(--text-muted); background:var(--surface3); border-color:var(--border2); border-style:solid; }
+.card-info-notes {
+  margin-left:auto; background:none; border:none; cursor:pointer; padding:3px 5px;
+  border-radius:4px; color:var(--text-dim);
+  display:flex; align-items:center; gap:3px;
+  transition:color 0.12s, background 0.12s; flex-shrink:0;
+}
+.card-info-notes:hover { color:var(--accent); background:var(--accent-dim); }
+.card-info-notes.has-notes { color:var(--accent); }
+
+/* ── Sheet view ── */
+#card-sheet {
+  position:fixed; inset:0; z-index:300;
+  display:none; align-items:flex-start; justify-content:center;
+  padding-top:var(--titlebar-h);
+}
+#card-sheet.open { display:flex; }
+#sheet-backdrop {
+  position:absolute; inset:0;
+  background:rgba(0,0,0,0.45);
+  backdrop-filter:blur(3px);
+  -webkit-backdrop-filter:blur(3px);
+  cursor:pointer;
+}
+#sheet-panel {
+  position:relative; z-index:1;
+  background:var(--surface);
+  border:0.5px solid var(--border2);
+  border-radius:10px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.45);
+  width:min(860px, calc(100vw - 48px));
+  max-height:calc(100vh - var(--titlebar-h) - 48px);
+  margin-top:24px;
+  display:flex; flex-direction:column;
+  overflow:hidden;
+  animation:sheet-in 0.18s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes sheet-in {
+  from { opacity:0; transform:translateY(10px) scale(0.98); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+#sheet-header {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:16px 18px 14px; border-bottom:0.5px solid var(--border);
+  flex-shrink:0;
+}
+#sheet-title-wrap { flex:1; display:flex; align-items:flex-start; gap:8px; }
+#sheet-title {
+  font-size:15px; font-weight:600; color:var(--text);
+  line-height:1.4; flex:1; word-break:break-word;
+}
+#sheet-title-input {
+  font-size:15px; font-weight:600; color:var(--text);
+  background:var(--surface2); border:0.5px solid var(--accent);
+  border-radius:6px; padding:3px 8px; outline:none;
+  font-family:inherit; line-height:1.4; width:100%;
+  display:none;
+}
+#sheet-title-edit-btn {
+  background:none; border:none; cursor:pointer; color:var(--text-dim);
+  padding:4px; border-radius:4px; flex-shrink:0; margin-top:1px;
+  transition:color 0.12s, background 0.12s; display:flex;
+}
+#sheet-title-edit-btn:hover { color:var(--accent); background:var(--accent-dim); }
+#sheet-close {
+  background:none; border:none; color:var(--text-muted); cursor:pointer;
+  width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+  border-radius:6px; transition:background 0.12s, color 0.12s; flex-shrink:0;
+}
+#sheet-close:hover { background:var(--surface3); color:var(--text); }
+#sheet-body {
+  display:flex; flex:1; overflow:hidden;
+}
+/* Left panel — meta */
+#sheet-left {
+  width:240px; flex-shrink:0; padding:16px 18px;
+  border-right:0.5px solid var(--border);
+  overflow-y:auto; display:flex; flex-direction:column; gap:16px;
+}
+#sheet-left::-webkit-scrollbar { width:3px; }
+#sheet-left::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:2px; }
+.sheet-section-label {
+  font-size:10px; font-weight:600; text-transform:uppercase;
+  letter-spacing:0.08em; color:var(--text-dim); margin-bottom:6px;
+}
+/* Priority options inline in sheet */
+.sheet-priority-opts { display:flex; flex-direction:column; gap:2px; }
+.sheet-priority-opt {
+  display:flex; align-items:center; gap:8px; padding:6px 8px;
+  border-radius:6px; cursor:pointer; font-size:12px;
+  background:none; border:none; width:100%; text-align:left;
+  color:var(--text-muted); font-family:inherit;
+  transition:background 0.1s, color 0.1s;
+}
+.sheet-priority-opt:hover { background:var(--surface2); color:var(--text); }
+.sheet-priority-opt.active {
+  background:var(--accent-dim); color:var(--accent);
+  font-weight:600; border-left:2px solid var(--accent);
+}
+.sheet-priority-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+/* Tags in sheet */
+#sheet-tags-wrap { display:flex; flex-wrap:wrap; gap:4px; }
+.sheet-tag {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:10px; font-weight:600; padding:2px 6px;
+  border-radius:4px; letter-spacing:0.04em; text-transform:uppercase;
+  cursor:pointer;
+}
+.sheet-tag-remove {
+  font-size:11px; line-height:1; opacity:0.6;
+  transition:opacity 0.1s;
+}
+.sheet-tag:hover .sheet-tag-remove { opacity:1; }
+#sheet-tag-add-wrap { display:flex; gap:4px; margin-top:4px; }
+#sheet-tag-input {
+  flex:1; background:var(--surface2); border:0.5px solid var(--border2);
+  border-radius:5px; color:var(--text); font-size:11px;
+  padding:4px 7px; outline:none; font-family:inherit;
+  transition:border-color 0.15s;
+}
+#sheet-tag-input:focus { border-color:var(--accent); }
+#sheet-tag-input::placeholder { color:var(--text-dim); }
+#sheet-tag-add-btn {
+  background:var(--accent); border:none; border-radius:5px; color:#fff;
+  font-size:11px; padding:4px 8px; cursor:pointer; font-family:inherit;
+  transition:opacity 0.15s; flex-shrink:0;
+}
+#sheet-tag-add-btn:hover { opacity:0.85; }
+/* Sheet actions */
+#sheet-actions { display:flex; flex-direction:column; gap:6px; margin-top:auto; }
+.sheet-action-btn {
+  display:flex; align-items:center; gap:7px; padding:8px 10px;
+  border-radius:6px; border:0.5px solid var(--border2);
+  background:none; color:var(--text-muted); cursor:pointer;
+  font-size:12px; font-family:inherit; width:100%; text-align:left;
+  transition:background 0.12s, color 0.12s, border-color 0.12s;
+}
+.sheet-action-btn:hover { background:var(--surface2); color:var(--text); }
+.sheet-action-btn.complete-active { color:#10B981; border-color:rgba(16,185,129,0.4); background:rgba(16,185,129,0.08); }
+.sheet-action-btn.hold-active { color:#F59E0B; border-color:rgba(245,158,11,0.35); background:rgba(245,158,11,0.08); }
+.sheet-action-btn.danger:hover { color:#F87171; border-color:rgba(248,113,113,0.3); background:rgba(248,113,113,0.08); }
+.sheet-action-btn.archive-btn:hover { color:#F59E0B; border-color:rgba(245,158,11,0.3); background:rgba(245,158,11,0.08); }
+body.light .sheet-action-btn.complete-active { color:#059669; border-color:rgba(5,150,105,0.4); background:rgba(5,150,105,0.08); }
+/* Right panel — notes */
+#sheet-right {
+  flex:1; display:flex; flex-direction:column; overflow:hidden; padding:16px 18px;
+}
+#sheet-notes-log {
+  flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px;
+  margin-bottom:12px;
+}
+#sheet-notes-log::-webkit-scrollbar { width:3px; }
+#sheet-notes-log::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:2px; }
+#sheet-notes-empty { font-size:12px; color:var(--text-dim); text-align:center; padding:20px 0; font-style:italic; }
+#sheet-note-input-wrap { flex-shrink:0; border-top:0.5px solid var(--border); padding-top:12px; display:flex; flex-direction:column; gap:6px; }
+#sheet-note-textarea {
+  width:100%; background:var(--surface2); border:0.5px solid var(--border2);
+  border-radius:7px; color:var(--text); font-size:12px; padding:9px 11px;
+  resize:none; outline:none; font-family:inherit; line-height:1.55; height:80px;
+  transition:border-color 0.15s;
+}
+#sheet-note-textarea:focus { border-color:var(--accent); }
+#sheet-note-textarea::placeholder { color:var(--text-dim); }
+#sheet-note-save {
+  align-self:flex-end; background:var(--accent); border:none; border-radius:6px;
+  color:#fff; font-size:11px; font-weight:600; padding:6px 16px;
+  cursor:pointer; font-family:inherit; transition:opacity 0.15s;
+}
+#sheet-note-save:hover { opacity:0.88; }
+body.light #sheet-panel { box-shadow:0 24px 64px rgba(0,0,0,0.18); }
+
 /* TOOLTIP */
 .fb-tooltip { position:fixed; z-index:9999; pointer-events:none; background:#0a0c13; border:0.5px solid var(--border2); color:var(--text); font-size:11px; font-family:'Inter',sans-serif; padding:4px 9px; border-radius:5px; white-space:nowrap; opacity:0; transition:opacity 0.12s; }
 .fb-tooltip.visible { opacity:1; }
@@ -1287,6 +1482,74 @@ body.light #priority-bubble.flip-left::after { border-left-color:var(--surface);
   <button class="priority-option" data-priority="low" onclick="pickPriority('low')">
     <span class="priority-option-dot" style="background:#64748B"></span>Low
   </button>
+</div>
+
+<!-- Card Sheet View -->
+<div id="card-sheet">
+  <div id="sheet-backdrop" onclick="closeSheet()"></div>
+  <div id="sheet-panel">
+    <div id="sheet-header">
+      <div id="sheet-title-wrap">
+        <div id="sheet-title"></div>
+        <input id="sheet-title-input" type="text">
+        <button id="sheet-title-edit-btn" data-tip="Edit title" aria-label="Edit title">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 1.5l2.5 2.5-7 7H2v-2.5l7-7z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M7.5 3l2.5 2.5" stroke="currentColor" stroke-width="1.1"/></svg>
+        </button>
+      </div>
+      <button id="sheet-close" data-tip="Close" aria-label="Close">
+        <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+          <line x1="0" y1="0" x2="8" y2="8" stroke="currentColor" stroke-width="1.25"/>
+          <line x1="8" y1="0" x2="0" y2="8" stroke="currentColor" stroke-width="1.25"/>
+        </svg>
+      </button>
+    </div>
+    <div id="sheet-body">
+      <div id="sheet-left">
+        <!-- Due date -->
+        <div>
+          <div class="sheet-section-label">Due Date</div>
+          <div id="sheet-due-wrap"></div>
+        </div>
+        <!-- Priority -->
+        <div>
+          <div class="sheet-section-label">Priority</div>
+          <div class="sheet-priority-opts" id="sheet-priority-opts">
+            <button class="sheet-priority-opt" data-priority="critical" onclick="sheetSetPriority('critical')">
+              <span class="sheet-priority-dot" style="background:#EF4444"></span>Critical
+            </button>
+            <button class="sheet-priority-opt" data-priority="high" onclick="sheetSetPriority('high')">
+              <span class="sheet-priority-dot" style="background:#6C63FF"></span>High
+            </button>
+            <button class="sheet-priority-opt" data-priority="medium" onclick="sheetSetPriority('medium')">
+              <span class="sheet-priority-dot" style="background:#F59E0B"></span>Medium
+            </button>
+            <button class="sheet-priority-opt" data-priority="low" onclick="sheetSetPriority('low')">
+              <span class="sheet-priority-dot" style="background:#64748B"></span>Low
+            </button>
+          </div>
+        </div>
+        <!-- Tags -->
+        <div>
+          <div class="sheet-section-label">Tags</div>
+          <div id="sheet-tags-wrap"></div>
+          <div id="sheet-tag-add-wrap">
+            <input id="sheet-tag-input" type="text" placeholder="Add tag...">
+            <button id="sheet-tag-add-btn">Add</button>
+          </div>
+        </div>
+        <!-- Actions -->
+        <div id="sheet-actions"></div>
+      </div>
+      <div id="sheet-right">
+        <div class="sheet-section-label">Notes</div>
+        <div id="sheet-notes-log"></div>
+        <div id="sheet-note-input-wrap">
+          <textarea id="sheet-note-textarea" placeholder="Add a progress note... (Ctrl+Enter to save)"></textarea>
+          <button id="sheet-note-save">Save Note</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Calendar Bubble -->
@@ -1659,19 +1922,21 @@ function cardMetaAndActions(t) {
   var noteCount = (t.notes || []).length;
   var noteTip = noteCount ? 'Notes (' + noteCount + ')' : 'Add notes';
   var noteDot = noteCount ? '<span class="notes-dot" aria-hidden="true"></span>' : '';
-  var notesBtnCls = 'card-btn-notes' + (noteCount ? ' has-notes' : '');
-  var metaLeft = '';
-  if (t.onHold) metaLeft += '<span class="hold-badge"><i class="ti ti-player-pause" style="font-size:10px"></i>on hold</span>';
-  if (due) {
-    metaLeft += '<button class="card-due ' + due.cls + '" onclick="openCal(event,\'' + t.id + '\')" data-tip="Change due date"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</button>';
-  } else {
-    metaLeft += '<button class="card-add-due" onclick="openCal(event,\'' + t.id + '\')" data-tip="Set due date"><i class="ti ti-calendar" style="font-size:11px"></i>Set date</button>';
-  }
-  var metaRow = '<div class="card-meta">'
-    + '<div class="card-meta-left">' + metaLeft + '</div>'
-    + '<button class="' + notesBtnCls + '" onclick="openNotes(event,\'' + t.id + '\')" data-tip="' + noteTip + '">'
-    + '<svg width="13" height="14" viewBox="0 0 13 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2" y="1" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.1"/><line x1="4.5" y1="1" x2="4.5" y2="13" stroke="currentColor" stroke-width="1.1"/><path d="M4.5 3.5 C3.5 3.5 3 3 3 2.5 C3 2 3.5 1.5 4.5 1.5" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/><path d="M4.5 6.5 C3.5 6.5 3 6 3 5.5 C3 5 3.5 4.5 4.5 4.5" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/><path d="M4.5 9.5 C3.5 9.5 3 9 3 8.5 C3 8 3.5 7.5 4.5 7.5" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/><line x1="6.5" y1="4.5" x2="10.5" y2="4.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="6.5" y1="7" x2="10.5" y2="7" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="6.5" y1="9.5" x2="9" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>' + noteDot + '</button>'
-    + '</div>';
+  var notesBtnCls = 'card-info-notes' + (noteCount ? ' has-notes' : '');
+  var pb = PRIORITY_BADGE[t.priority] || PRIORITY_BADGE.low;
+
+  /* Info row: due date pill (left, fixed width) + priority badge (right) + notes btn */
+  var dueBtn = due
+    ? '<button class="card-due ' + due.cls + '" onclick="openCal(event,\'' + t.id + '\')" data-tip="Change due date"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</button>'
+    : '<button class="card-add-due" onclick="openCal(event,\'' + t.id + '\')" data-tip="Set due date"><i class="ti ti-calendar" style="font-size:11px"></i>Set date</button>';
+  var holdBadge = t.onHold ? '<span class="hold-badge"><i class="ti ti-player-pause" style="font-size:10px"></i>on hold</span>' : '';
+  var priorityBtn = '<span class="priority-badge ' + pb.cls + '" onclick="openPriorityPicker(event,\'' + t.id + '\')" style="cursor:pointer;margin-left:auto" data-tip="Change priority"><i class="ti ' + pb.icon + '"></i>' + pb.label + '</span>';
+  var notesBtn = '<button class="' + notesBtnCls + '" onclick="openNotes(event,\'' + t.id + '\')" data-tip="' + noteTip + '">'
+    + '<svg width="13" height="14" viewBox="0 0 13 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2" y="1" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.1"/><line x1="4.5" y1="1" x2="4.5" y2="13" stroke="currentColor" stroke-width="1.1"/><path d="M4.5 3.5 C3.5 3.5 3 3 3 2.5 C3 2 3.5 1.5 4.5 1.5" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/><path d="M4.5 6.5 C3.5 6.5 3 6 3 5.5 C3 5 3.5 4.5 4.5 4.5" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/><path d="M4.5 9.5 C3.5 9.5 3 9 3 8.5 C3 8 3.5 7.5 4.5 7.5" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/><line x1="6.5" y1="4.5" x2="10.5" y2="4.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="6.5" y1="7" x2="10.5" y2="7" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="6.5" y1="9.5" x2="9" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>' + noteDot + '</button>';
+
+  var infoRow = (holdBadge ? '<div style="margin-top:5px">' + holdBadge + '</div>' : '')
+    + '<div class="card-info-row">' + dueBtn + priorityBtn + notesBtn + '</div>';
+
   /* Done cards get archive instead of delete; active cards get delete */
   var rightBtn = isDone
     ? '<button class="card-btn-archive" onclick="archiveTask(\'' + t.id + '\')" data-tip="Archive this task">' + '<svg width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="0.5" y="1" width="11" height="2.5" rx="0.75" stroke="currentColor" stroke-width="1"/><path d="M1.5 3.5V11a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V3.5" stroke="currentColor" stroke-width="1"/><path d="M4 7.5l2 2 2-2M6 9.5V6" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>' + '</button>'
@@ -1683,7 +1948,7 @@ function cardMetaAndActions(t) {
     + '<i class="ti ti-player-pause"></i><span class="card-btn-label">' + holdLabel + '</span></button>'
     + rightBtn
     + '</div>';
-  return metaRow + actionsRow;
+  return infoRow + actionsRow;
 }
 
 function renderCard(t) {
@@ -1715,10 +1980,10 @@ function renderCard(t) {
       + '<span class="stack-done-label">' + prog.done + '/' + prog.total + '</span>'
       + '</div>';
   }
-  return '<div class="card' + holdCls + doneCls + parentCls + '" data-id="' + escHtml(t.id) + '" draggable="true">'
+  return '<div class="card' + holdCls + doneCls + parentCls + '" data-id="' + escHtml(t.id) + '" draggable="true" onclick="handleCardClick(event,\'' + t.id + '\')">'
     + '<div class="card-bar" style="background:' + bar + '"></div>'
     + '<div class="card-title">' + escHtml(t.title) + '</div>'
-    + priorityHtml + tagsHtml
+    + tagsHtml
     + cardMetaAndActions(t)
     + stackHtml
     + '</div>';
@@ -3462,6 +3727,265 @@ document.addEventListener('mousedown', function(e) {
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closePriorityPicker();
 });
+
+
+/* ── Card Sheet View ── */
+var sheetTaskId = null;
+var sheetEditingTitle = false;
+
+function handleCardClick(e, id) {
+  /* Ignore clicks on interactive elements — let them handle themselves */
+  if (e.target.closest('button, a, input, .tag, [onclick]:not(.card)')) return;
+  openSheet(id);
+}
+
+function openSheet(id) {
+  var task = tasks.find(function(t){ return t.id === id; });
+  if (!task) return;
+  sheetTaskId = id;
+  sheetEditingTitle = false;
+  renderSheet(task);
+  document.getElementById('card-sheet').classList.add('open');
+}
+
+function closeSheet() {
+  /* Save title edit if in progress */
+  if (sheetEditingTitle) commitSheetTitle();
+  document.getElementById('card-sheet').classList.remove('open');
+  sheetTaskId = null;
+  sheetEditingTitle = false;
+}
+
+function renderSheet(task) {
+  if (!task) return;
+  var due = formatDue(task.due);
+  var isDone = task.column === 'done';
+
+  /* Title */
+  document.getElementById('sheet-title').textContent = task.title;
+  document.getElementById('sheet-title').style.display = 'block';
+  document.getElementById('sheet-title-input').style.display = 'none';
+  document.getElementById('sheet-title-input').value = task.title;
+
+  /* Due date */
+  var dueWrap = document.getElementById('sheet-due-wrap');
+  if (due) {
+    dueWrap.innerHTML = '<button class="card-due ' + due.cls + '" onclick="openCal(event,\'' + task.id + '\')" data-tip="Change due date"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</button>';
+  } else {
+    dueWrap.innerHTML = '<button class="card-add-due" onclick="openCal(event,\'' + task.id + '\')" data-tip="Set due date"><i class="ti ti-calendar" style="font-size:11px"></i>Set date</button>';
+  }
+
+  /* Priority */
+  document.querySelectorAll('.sheet-priority-opt').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.priority === task.priority);
+  });
+
+  /* Tags */
+  renderSheetTags(task);
+
+  /* Actions */
+  var holdActiveCls = task.onHold ? ' hold-active' : '';
+  var completeCls = isDone ? ' complete-active' : '';
+  var actionsEl = document.getElementById('sheet-actions');
+  var rightActionHtml = isDone
+    ? '<button class="sheet-action-btn archive-btn" onclick="archiveTask(sheetTaskId);closeSheet()"><svg width="12" height="13" viewBox="0 0 12 13" fill="none" style="flex-shrink:0"><rect x="0.5" y="1" width="11" height="2.5" rx="0.75" stroke="currentColor" stroke-width="1"/><path d="M1.5 3.5V11a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V3.5" stroke="currentColor" stroke-width="1"/><path d="M4 7.5l2 2 2-2M6 9.5V6" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>Archive</button>'
+    : '<button class="sheet-action-btn danger" onclick="deleteTask(sheetTaskId);closeSheet()"><svg width="12" height="14" viewBox="0 0 12 14" fill="none" style="flex-shrink:0"><path d="M1 3h10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M4 3V2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><rect x="2" y="4" width="8" height="9" rx="1" stroke="currentColor" stroke-width="1.1"/><line x1="4.5" y1="6" x2="4.5" y2="11" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="7.5" y1="6" x2="7.5" y2="11" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>Delete</button>';
+  actionsEl.innerHTML = ''
+    + '<button class="sheet-action-btn' + completeCls + '" onclick="sheetComplete()"><i class="ti ti-circle-check"></i>' + (isDone ? 'Completed' : 'Mark Complete') + '</button>'
+    + '<button class="sheet-action-btn' + holdActiveCls + '" onclick="sheetHold()"><i class="ti ti-player-pause"></i>' + (task.onHold ? 'Resume' : 'Put on Hold') + '</button>'
+    + rightActionHtml;
+
+  /* Notes */
+  renderSheetNotes(task);
+  document.getElementById('sheet-note-textarea').value = '';
+}
+
+function renderSheetTags(task) {
+  var wrap = document.getElementById('sheet-tags-wrap');
+  if (!task.tags || !task.tags.length) {
+    wrap.innerHTML = '<span style="font-size:11px;color:var(--text-dim);font-style:italic">No tags</span>';
+    return;
+  }
+  wrap.innerHTML = task.tags.map(function(tag) {
+    var s = tagStyleObj(tag);
+    return '<span class="sheet-tag" style="background:' + s.bg + ';color:' + s.color + '" onclick="sheetRemoveTag(\'' + escHtml(tag) + '\')">'
+      + escHtml(tag) + '<span class="sheet-tag-remove">×</span></span>';
+  }).join('');
+}
+
+function renderSheetNotes(task) {
+  var log = document.getElementById('sheet-notes-log');
+  var notes = task.notes || [];
+  if (!notes.length) {
+    log.innerHTML = '<div id="sheet-notes-empty">No notes yet.</div>';
+    return;
+  }
+  log.innerHTML = notes.slice().reverse().map(function(n) {
+    var d = new Date(n.ts);
+    var label = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+      + ' ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    var isHold = !!n.isHold;
+    var entryCls = isHold ? 'note-entry hold-note' : 'note-entry';
+    var tsRow = '<div class="note-ts-row"><span class="note-ts">' + label + '</span>'
+      + (isHold ? '<span class="note-hold-tag">On Hold</span>' : '') + '</div>';
+    return '<div class="' + entryCls + '">' + tsRow + '<div class="note-text">' + escHtml(n.text) + '</div></div>';
+  }).join('');
+}
+
+/* Sheet actions */
+async function sheetComplete() {
+  if (!sheetTaskId) return;
+  await window.completeTask(sheetTaskId);
+  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+  if (task) renderSheet(task);
+}
+
+function sheetHold() {
+  if (!sheetTaskId) return;
+  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+  if (!task) return;
+  if (task.onHold) {
+    task.onHold = false;
+    window.flowboard.saveTasks(tasks).then(function(){ renderBoard(); });
+    renderSheet(task);
+  } else {
+    /* Open notes bubble in hold mode — positioned near the button */
+    var btn = document.querySelector('#sheet-actions .sheet-action-btn:nth-child(2)');
+    var fakeEvent = { stopPropagation: function(){}, currentTarget: btn || document.body };
+    openNotesForHold(fakeEvent, sheetTaskId);
+  }
+}
+
+window.sheetSetPriority = async function(priority) {
+  if (!sheetTaskId) return;
+  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+  if (!task) return;
+  task.priority = priority;
+  await window.flowboard.saveTasks(tasks);
+  renderBoard();
+  renderSheet(task);
+};
+
+window.sheetRemoveTag = async function(tag) {
+  if (!sheetTaskId) return;
+  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+  if (!task) return;
+  task.tags = (task.tags || []).filter(function(tg){ return tg.toLowerCase() !== tag.toLowerCase(); });
+  await window.flowboard.saveTasks(tasks);
+  renderBoard();
+  renderSheetTags(task);
+};
+
+/* Title editing */
+document.getElementById('sheet-title-edit-btn').addEventListener('click', function() {
+  if (!sheetEditingTitle) {
+    sheetEditingTitle = true;
+    document.getElementById('sheet-title').style.display = 'none';
+    var inp = document.getElementById('sheet-title-input');
+    inp.style.display = 'block';
+    inp.focus();
+    inp.select();
+  } else {
+    commitSheetTitle();
+  }
+});
+
+document.getElementById('sheet-title-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); commitSheetTitle(); }
+  if (e.key === 'Escape') {
+    sheetEditingTitle = false;
+    document.getElementById('sheet-title').style.display = 'block';
+    document.getElementById('sheet-title-input').style.display = 'none';
+  }
+});
+
+async function commitSheetTitle() {
+  if (!sheetTaskId) return;
+  var val = document.getElementById('sheet-title-input').value.trim();
+  if (!val) return;
+  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+  if (!task) return;
+  task.title = val;
+  sheetEditingTitle = false;
+  document.getElementById('sheet-title').textContent = val;
+  document.getElementById('sheet-title').style.display = 'block';
+  document.getElementById('sheet-title-input').style.display = 'none';
+  await window.flowboard.saveTasks(tasks);
+  renderBoard();
+}
+
+/* Tag add */
+document.getElementById('sheet-tag-add-btn').addEventListener('click', sheetAddTag);
+document.getElementById('sheet-tag-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') sheetAddTag();
+});
+
+async function sheetAddTag() {
+  if (!sheetTaskId) return;
+  var input = document.getElementById('sheet-tag-input');
+  var tag = input.value.trim().toLowerCase().replace(/\s+/g, '-');
+  if (!tag) return;
+  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+  if (!task) return;
+  if ((task.tags || []).indexOf(tag) !== -1) { input.value = ''; return; }
+  task.tags = (task.tags || []).concat([tag]);
+  if (!tagDefs[tag] && !DEFAULT_TAGS[tag]) {
+    tagDefs[tag] = nextColor();
+    await saveTags();
+  }
+  input.value = '';
+  await window.flowboard.saveTasks(tasks);
+  renderBoard();
+  renderSheetTags(task);
+}
+
+/* Note save from sheet */
+document.getElementById('sheet-note-save').addEventListener('click', sheetSaveNote);
+document.getElementById('sheet-note-textarea').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sheetSaveNote(); }
+});
+
+async function sheetSaveNote() {
+  if (!sheetTaskId) return;
+  var text = document.getElementById('sheet-note-textarea').value.trim();
+  if (!text) return;
+  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+  if (!task) return;
+  if (!task.notes) task.notes = [];
+  task.notes.push({ text: text, ts: new Date().toISOString() });
+  await window.flowboard.saveTasks(tasks);
+  document.getElementById('sheet-note-textarea').value = '';
+  renderSheetNotes(task);
+  renderBoard(); /* update note dot on card */
+}
+
+/* Close sheet on ESC */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('card-sheet').classList.contains('open')) {
+    closeSheet();
+  }
+});
+
+/* Re-render sheet when cal picker changes a date (sheet is open) */
+var _origPickDate = window.pickDate;
+window.pickDate = async function(dateStr) {
+  await _origPickDate(dateStr);
+  if (sheetTaskId) {
+    var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+    if (task) {
+      var dueWrap = document.getElementById('sheet-due-wrap');
+      if (dueWrap) {
+        var due = formatDue(task.due);
+        if (due) {
+          dueWrap.innerHTML = '<button class="card-due ' + due.cls + '" onclick="openCal(event,\'' + task.id + '\')" data-tip="Change due date"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</button>';
+        } else {
+          dueWrap.innerHTML = '<button class="card-add-due" onclick="openCal(event,\'' + task.id + '\')" data-tip="Set due date"><i class="ti ti-calendar" style="font-size:11px"></i>Set date</button>';
+        }
+      }
+    }
+  }
+};
+document.getElementById('sheet-close').addEventListener('click', closeSheet);
 
 /* ── Tooltip engine ── */
 var tip = document.createElement('div');

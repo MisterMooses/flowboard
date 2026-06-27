@@ -1,5 +1,10 @@
 # Flowboard Changelog
 
+## v1.6.0
+### New Features
+- **Card Sheet View:** Clicking anywhere on a card (outside buttons) opens a full expanded sheet view. The sheet shows the card title (editable with pencil icon), inline priority selector, due date picker, tag management (add/remove), a full scrollable notes history, and an always-visible note entry box. Complete, Hold, and Archive/Delete actions are also available in the sheet.
+- **Due date + priority on same line in card view:** The due date pill and priority badge now share a single info row below the card title. Due date is left-justified with a fixed width; priority sits to the right.
+
 ## v1.5.16
 ### Improvements
 - **Standardized active/selected highlighting.** Priority picker active state now uses the same accent-purple pattern (tinted background, accent color, accent border) used by sidebar filters, pill buttons, day toggles, and calendar selections throughout the app.
