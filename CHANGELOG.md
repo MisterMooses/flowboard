@@ -1,5 +1,11 @@
 # Flowboard Changelog
 
+## v1.6.2
+### Changes & Fixes
+- **Hold moved into notes UI.** The Hold button is removed from the card action row. To put a task on hold, open the notes bubble or sheet view and use the Hold button inside the note input area. This enforces a hold reason naturally — the Hold button is disabled until text is entered. Attempting to click it empty flashes the border red and shows a brief red placeholder message.
+- **Note delete/restore icons.** Text "Delete"/"Restore" labels replaced with hover-reveal icon buttons (× to delete, ↩ to restore) right-justified on the timestamp row.
+- **Notes input row layout.** Hold button left-justified, Save Note right-justified, in both the card bubble ("Hold") and sheet view ("Put on Hold").
+
 ## v1.6.1
 ### Bug Fixes & Improvements
 - **Card view:** Due date + priority info row now appears above tags, not below.
