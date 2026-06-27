@@ -113,13 +113,8 @@ body.light #btn-update:hover { background:rgba(5,150,105,0.10); color:#047857; }
 /* BOARD */
 #board-wrap { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 #board-toolbar { padding:10px 16px; display:flex; align-items:center; gap:10px; border-bottom:0.5px solid var(--border); flex-shrink:0; }
-#search-wrap { position:relative; flex:1; max-width:280px; }
-#search-wrap i { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--text-dim); font-size:14px; pointer-events:none; }
-#search-input { width:100%; background:var(--surface2); border:0.5px solid var(--border2); border-radius:7px; color:var(--text); font-size:12px; padding:6px 10px 6px 30px; outline:none; font-family:inherit; transition:border-color 0.15s; }
-#search-input:focus { border-color:var(--accent); }
-#search-input::placeholder { color:var(--text-dim); }
 #task-count-badge { font-size:11px; color:var(--text-muted); background:var(--surface2); padding:3px 10px; border-radius:20px; border:0.5px solid var(--border); margin-left:auto; }
-#board { flex:1; display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:14px; overflow-y:auto; align-items:start; }
+#board { flex:1; display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:14px; overflow-y:auto; align-items:stretch; }
 #board::-webkit-scrollbar { width:5px; }
 #board::-webkit-scrollbar-track { background:transparent; }
 #board::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:4px; }
@@ -131,7 +126,7 @@ body.light #btn-update:hover { background:rgba(5,150,105,0.10); color:#047857; }
 .col-accent { width:3px; height:14px; border-radius:2px; flex-shrink:0; }
 .col-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); flex:1; }
 .col-badge { font-size:11px; color:var(--text-muted); background:var(--surface2); padding:1px 8px; border-radius:20px; }
-.col-body { padding:9px; display:flex; flex-direction:column; gap:7px; min-height:60px; }
+.col-body { padding:9px; display:flex; flex-direction:column; gap:7px; min-height:60px; flex:1; }
 
 /* CARDS */
 .card { background:var(--surface2); border-radius:var(--radius-sm); border:0.5px solid var(--border); padding:10px 11px 10px 14px; position:relative; transition:border-color 0.15s,transform 0.12s; cursor:grab; }
@@ -1115,10 +1110,6 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
 
   <div id="board-wrap">
     <div id="board-toolbar">
-      <div id="search-wrap">
-        <i class="ti ti-search"></i>
-        <input id="search-input" type="text" placeholder="Search tasks...">
-      </div>
       <div id="task-count-badge">0 tasks</div>
     </div>
 
@@ -3378,19 +3369,7 @@ document.getElementById('cmd-input').addEventListener('input', function() {
   this.style.height = Math.min(this.scrollHeight, 90) + 'px';
 });
 document.getElementById('cmd-btn').addEventListener('click', addTask);
-(function() {
-  var searchEl = document.getElementById('search-input');
-  function handleSearch() {
-    var val = searchEl.value.trim();
-    if (val !== searchQuery) {
-      searchQuery = val;
-      renderBoard();
-    }
-  }
-  searchEl.addEventListener('input', handleSearch);
-  searchEl.addEventListener('keyup', handleSearch);
-  searchEl.addEventListener('change', handleSearch);
-})();
+/* search bar removed — to be reimplemented */
 document.querySelectorAll('.sidebar-filter[data-filter]').forEach(function(btn) {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.sidebar-filter[data-filter]').forEach(function(b){ b.classList.remove('active'); });

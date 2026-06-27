@@ -1,5 +1,11 @@
 # Flowboard Changelog
 
+## v1.5.11
+### Changes
+- **Removed board search bar.** To be reimplemented in a future release.
+### Bug Fixes
+- **Drag and drop now works across the full column height.** Previously, dropping a card into an empty or sparsely populated column required targeting the small card tray area. Columns now stretch to fill the full board height, making the entire vertical column space a valid drop target.
+
 ## v1.5.10
 ### Bug Fixes
 - **Board search now reliably filters cards.** Added keyup and change event listeners alongside the existing input listener to ensure the search handler fires regardless of how input is delivered in Electron's renderer (direct typing, paste, autocomplete). Search now triggers on any value change.
