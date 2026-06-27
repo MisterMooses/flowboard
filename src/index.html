@@ -2675,7 +2675,14 @@ function renderWeeklySummary() {
   if (!panel) return;
 
   var thisWeek = getWorkWeekBounds(0);
-  var lastWeek = getWorkWeekBounds(-1);
+
+  /* Rolling 7-day lookback for "last week" — always covers the past 7 days
+     regardless of day of week, so Monday standup includes Monday's work */
+  var lastWeek = (function() {
+    var end = new Date(); end.setHours(23,59,59,999);
+    var start = new Date(); start.setDate(start.getDate() - 7); start.setHours(0,0,0,0);
+    return { start: start, end: end };
+  })();
 
   /* ── THIS WEEK: active tasks due on configured work days this week ── */
   var wdays = getWorkDays();
@@ -2795,7 +2802,11 @@ function renderWeeklySummary() {
 
 function buildStandupText() {
   var thisWeek = getWorkWeekBounds(0);
-  var lastWeek = getWorkWeekBounds(-1);
+  var lastWeek = (function() {
+    var end = new Date(); end.setHours(23,59,59,999);
+    var start = new Date(); start.setDate(start.getDate() - 7); start.setHours(0,0,0,0);
+    return { start: start, end: end };
+  })();
   var lwStart = lastWeek.start, lwEnd = lastWeek.end;
   var lines = [];
 

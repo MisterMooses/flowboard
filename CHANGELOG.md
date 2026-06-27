@@ -1,5 +1,9 @@
 # Flowboard Changelog
 
+## v1.5.13
+### Improvements
+- **Weekly summary "Last Week" now uses a rolling 7-day lookback** instead of the previous Mon–Sun calendar week. Completed tasks and progress notes from the past 7 days always appear in the summary, regardless of what day of the week it is. Ensures Monday and Tuesday work shows up correctly for a Wednesday standup.
+
 ## v1.5.12
 ### Fixes
 - Reverted column layout change from v1.5.11 that broke column sizing and appearance. Drag and drop column height fix will be revisited with a different approach.
