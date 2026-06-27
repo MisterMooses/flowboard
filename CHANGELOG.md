@@ -1,5 +1,9 @@
 # Flowboard Changelog
 
+## v1.5.12
+### Fixes
+- Reverted column layout change from v1.5.11 that broke column sizing and appearance. Drag and drop column height fix will be revisited with a different approach.
+
 ## v1.5.11
 ### Changes
 - **Removed board search bar.** To be reimplemented in a future release.
