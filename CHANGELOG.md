@@ -1,5 +1,12 @@
 # Flowboard Changelog
 
+## v1.11.0
+### New Features
+- **New cards are now highlighted and scrolled into view when added.** The card (or stack parent) you just created gets a soft purple glow and border for a moment so it's easy to spot, and its column automatically scrolls to reveal it. The highlight fades gently the first time you mouse over the card.
+- **Subtask visibility in sheet view.** Opening the sheet for a stack parent now shows a compact "Subtasks" list (with a done/total count) between Tags and the action buttons. Each row shows priority, title, and a checkmark if complete — click one to jump into that subtask's own sheet.
+### Bug Fixes & Improvements
+- **Notes bubble: Enter now saves the note, Shift+Enter for a new line** — matching the sheet view's notes panel, which already worked this way. Previously the bubble only saved on Cmd/Ctrl+Enter, and plain Enter just inserted a newline.
+
 ## v1.10.0
 ### New Features
 - **Sidebar bottom panel (settings, tags, archive) is now pinned.** Previously, expanding a collapsible filter section (Weekly Summary, Filter by Priority, Filter by Tag) pushed the bottom button row down and off the window. That row now stays fixed in place, and the filter sections scroll independently behind it.
