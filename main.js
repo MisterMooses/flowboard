@@ -48,12 +48,16 @@ let mainWindow;
 function createWindow() {
   const savedTheme = loadConfig().theme || 'light';
 
+  const platformWindowOptions = process.platform === 'darwin'
+    ? { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 12, y: 13 } }
+    : { frame: false };
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 900,
     minHeight: 600,
-    frame: false,
+    ...platformWindowOptions,
     backgroundColor: savedTheme === 'dark' ? '#0F1117' : '#F0F2F7',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

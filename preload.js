@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('flowboard', {
+  platform:       process.platform,
   getConfig:      ()        => ipcRenderer.invoke('get-config'),
   saveConfig:     (data)    => ipcRenderer.invoke('save-config', data),
   getTasks:       ()        => ipcRenderer.invoke('get-tasks'),

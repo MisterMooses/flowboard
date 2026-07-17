@@ -1,5 +1,11 @@
 # Flowboard Changelog
 
+## v1.8.0
+### New Features
+- **Native macOS title bar.** The Mac build now uses real, OS-drawn traffic-light window controls (via `titleBarStyle: 'hiddenInset'`) instead of the Windows-style custom min/maximize/close buttons — matching macOS UI conventions. Windows is unaffected and keeps its existing custom title bar exactly as before.
+### Bug Fixes & Improvements
+- **Fixed the app window blurring and losing clickable window controls whenever a card's sheet view was open**, on both platforms. The sheet's full-screen backdrop (and the API key modal's backdrop, which had the same issue) was covering the entire window including the title bar — it now stops above the title bar, so the title bar stays sharp, visible, and fully clickable while a sheet or modal is open.
+
 ## v1.7.2
 ### Bug Fixes & Improvements
 - **Fixed the command bar occasionally submitting a task with nothing happening.** If the AI's response ever came back with no usable text (rare API edge case), the app silently treated it as "zero tasks" with no visible error — the prompt looked like it vanished. It now surfaces a clear red error message instead, and doing the same for a genuinely empty or malformed response.

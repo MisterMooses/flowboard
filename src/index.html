@@ -48,6 +48,10 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 #btn-close:active { background:#b52516; }
 .win-btn svg { display:block; pointer-events:none; }
 
+/* macOS: native traffic lights replace the custom min/max/close buttons */
+body.mac #titlebar { padding-left:78px; }
+body.mac #btn-min, body.mac #btn-max, body.mac #btn-close { display:none; }
+
 /* Update available button */
 #btn-update {
   display:none; align-items:center; justify-content:center;
@@ -206,7 +210,7 @@ body.light .card-btn:hover { background:#d8ddef; }
 #cmd-hint { font-size:10.5px; color:var(--text-dim); text-align:center; margin-top:3px; }
 
 /* MODALS */
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:100; }
+.modal-overlay { position:fixed; top:var(--titlebar-h); right:0; bottom:0; left:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:100; }
 .modal-overlay.open { display:flex; }
 .modal-box { background:var(--surface); border:0.5px solid var(--border2); border-radius:14px; padding:24px; width:420px; max-width:90vw; }
 .modal-box h2 { font-size:15px; font-weight:600; margin-bottom:4px; }
@@ -1026,9 +1030,8 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
 
 /* ── Sheet view ── */
 #card-sheet {
-  position:fixed; inset:0; z-index:300;
+  position:fixed; top:var(--titlebar-h); right:0; bottom:0; left:0; z-index:300;
   display:none; align-items:flex-start; justify-content:center;
-  padding-top:var(--titlebar-h);
 }
 #card-sheet.open { display:flex; }
 #sheet-backdrop {
@@ -1753,6 +1756,10 @@ body.light #notes-hold-btn.hold-active, body.light #sheet-note-hold-btn.hold-act
 </div>
 
 <script>
+if (window.flowboard && window.flowboard.platform === 'darwin') {
+  document.body.classList.add('mac');
+}
+
 /* ── Default tag palette ── */
 /* Built-in tag styles — generic defaults shipped with the app.
    User-defined tags are stored in AppData/Roaming/flowboard/config.json
