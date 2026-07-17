@@ -1,5 +1,10 @@
 # Flowboard Changelog
 
+## v1.7.1
+### Bug Fixes & Improvements
+- **Hold button now correctly flips to Resume.** After putting a task on hold from the notes bubble or sheet view, the button stayed labeled "Hold"/"Put on Hold" and disabled until a note was typed. It now shows "Resume" with amber active styling, is immediately clickable, and no longer requires text to resume.
+- **Removed the duplicate, broken Hold button from the sheet view's action row.** The bottom-left panel (Mark Complete / Archive / Delete) had its own "Put on Hold"/"Resume" button that crashed with a `ReferenceError` when clicked — it's now removed since the notes-panel button already owns hold/resume.
+
 ## v1.7.0
 ### New Features
 - **macOS build target added.** `electron-builder.yml` now includes a `mac` target (unsigned `.dmg`, reusing the existing app icon) alongside the Windows NSIS build. Run `npm run build:mac` to produce a local Mac build for development/testing. Windows remains the only signed, published, auto-updating target for testers.

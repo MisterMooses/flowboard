@@ -1152,7 +1152,6 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
 }
 .sheet-action-btn:hover { background:var(--surface2); color:var(--text); }
 .sheet-action-btn.complete-active { color:#10B981; border-color:rgba(16,185,129,0.4); background:rgba(16,185,129,0.08); }
-.sheet-action-btn.hold-active { color:#F59E0B; border-color:rgba(245,158,11,0.35); background:rgba(245,158,11,0.08); }
 .sheet-action-btn.danger:hover { color:#F87171; border-color:rgba(248,113,113,0.3); background:rgba(248,113,113,0.08); }
 .sheet-action-btn.archive-btn:hover { color:#F59E0B; border-color:rgba(245,158,11,0.3); background:rgba(245,158,11,0.08); }
 body.light .sheet-action-btn.complete-active { color:#059669; border-color:rgba(5,150,105,0.4); background:rgba(5,150,105,0.08); }
@@ -1223,6 +1222,15 @@ body.light .note-entry.deleted-note { background:rgba(220,38,38,0.07); border-le
 }
 body.light #notes-hold-btn, body.light #sheet-note-hold-btn {
   background:rgba(180,83,9,0.08); border-color:rgba(180,83,9,0.25); color:#B45309;
+}
+#notes-hold-btn.hold-active, #sheet-note-hold-btn.hold-active {
+  background:rgba(245,158,11,0.18); border-color:rgba(245,158,11,0.45); color:#F59E0B;
+}
+#notes-hold-btn.hold-active:hover:not(:disabled), #sheet-note-hold-btn.hold-active:hover:not(:disabled) {
+  background:rgba(245,158,11,0.28);
+}
+body.light #notes-hold-btn.hold-active, body.light #sheet-note-hold-btn.hold-active {
+  background:rgba(180,83,9,0.16); border-color:rgba(180,83,9,0.45); color:#B45309;
 }
 
 .note-required-flash::placeholder { color:#F87171 !important; }
@@ -2912,6 +2920,7 @@ window.openNotes = function(e, id) {
   document.getElementById('notes-bubble-title').textContent = task.title;
   renderNotesList(task);
   document.getElementById('notes-textarea').value = '';
+  syncNotesHoldBtn('notes-hold-btn', 'Hold', task);
 
   /* Position: right of the clicked button, vertically centered on it */
   var btn = e.currentTarget;
@@ -3017,16 +3026,23 @@ async function saveNote() {
   await window.flowboard.saveTasks(tasks);
   renderNotesList(task);
   document.getElementById('notes-textarea').value = '';
-  updateNotesHoldBtn('');
+  syncNotesHoldBtn('notes-hold-btn', 'Hold', task);
   renderBoard();
 }
 
 async function holdNoteFromBubble() {
-  var text = document.getElementById('notes-textarea').value.trim();
   if (!notesTaskId) return;
-  if (!text) { flashNoteRequired('notes-textarea'); return; }
   var task = tasks.find(function(t){ return t.id === notesTaskId; });
   if (!task) return;
+  if (task.onHold) {
+    task.onHold = false;
+    await window.flowboard.saveTasks(tasks);
+    closeNotes();
+    renderBoard();
+    return;
+  }
+  var text = document.getElementById('notes-textarea').value.trim();
+  if (!text) { flashNoteRequired('notes-textarea'); return; }
   if (!task.notes) task.notes = [];
   task.notes.push({ text: text, ts: new Date().toISOString(), isHold: true });
   task.onHold = true;
@@ -3051,9 +3067,20 @@ function flashNoteRequired(textareaId) {
   }, 2000);
 }
 
-function updateNotesHoldBtn(value) {
-  var btn = document.getElementById('notes-hold-btn');
-  if (btn) btn.disabled = !value.trim();
+function syncNotesHoldBtn(btnId, offLabel, task) {
+  var btn = document.getElementById(btnId);
+  if (!btn) return;
+  if (task.onHold) {
+    btn.textContent = 'Resume';
+    btn.disabled = false;
+    btn.classList.add('hold-active');
+  } else {
+    btn.textContent = offLabel;
+    btn.classList.remove('hold-active');
+    var textareaId = (btnId === 'notes-hold-btn') ? 'notes-textarea' : 'sheet-note-textarea';
+    var ta = document.getElementById(textareaId);
+    btn.disabled = !(ta && ta.value.trim());
+  }
 }
 
 /* Add a note to a task by title match (used by command bar) */
@@ -3074,7 +3101,8 @@ document.getElementById('notes-textarea').addEventListener('keydown', function(e
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveNote(); }
 });
 document.getElementById('notes-textarea').addEventListener('input', function() {
-  updateNotesHoldBtn(this.value);
+  var task = tasks.find(function(t){ return t.id === notesTaskId; });
+  if (task) syncNotesHoldBtn('notes-hold-btn', 'Hold', task);
 });
 document.getElementById('notes-bubble-close').addEventListener('click', closeNotes);
 document.addEventListener('keydown', function(e) {
@@ -3909,7 +3937,6 @@ function renderSheet(task) {
   renderSheetTags(task);
 
   /* Actions */
-  var holdActiveCls = task.onHold ? ' hold-active' : '';
   var completeCls = isDone ? ' complete-active' : '';
   var actionsEl = document.getElementById('sheet-actions');
   var rightActionHtml = isDone
@@ -3917,12 +3944,12 @@ function renderSheet(task) {
     : '<button class="sheet-action-btn danger" onclick="deleteTask(sheetTaskId);closeSheet()"><svg width="12" height="14" viewBox="0 0 12 14" fill="none" style="flex-shrink:0"><path d="M1 3h10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M4 3V2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><rect x="2" y="4" width="8" height="9" rx="1" stroke="currentColor" stroke-width="1.1"/><line x1="4.5" y1="6" x2="4.5" y2="11" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="7.5" y1="6" x2="7.5" y2="11" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>Delete</button>';
   actionsEl.innerHTML = ''
     + '<button class="sheet-action-btn' + completeCls + '" onclick="sheetComplete()"><i class="ti ti-circle-check"></i>' + (isDone ? 'Completed' : 'Mark Complete') + '</button>'
-    + '<button class="sheet-action-btn' + holdActiveCls + '" onclick="sheetHold()"><i class="ti ti-player-pause"></i>' + (task.onHold ? 'Resume' : 'Put on Hold') + '</button>'
     + rightActionHtml;
 
   /* Notes */
   renderSheetNotes(task);
   document.getElementById('sheet-note-textarea').value = '';
+  syncNotesHoldBtn('sheet-note-hold-btn', 'Put on Hold', task);
 }
 
 function renderSheetTags(task) {
@@ -3955,22 +3982,6 @@ async function sheetComplete() {
   await window.completeTask(sheetTaskId);
   var task = tasks.find(function(t){ return t.id === sheetTaskId; });
   if (task) renderSheet(task);
-}
-
-function sheetHold() {
-  if (!sheetTaskId) return;
-  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
-  if (!task) return;
-  if (task.onHold) {
-    task.onHold = false;
-    window.flowboard.saveTasks(tasks).then(function(){ renderBoard(); });
-    renderSheet(task);
-  } else {
-    /* Open notes bubble in hold mode — positioned near the button */
-    var btn = document.querySelector('#sheet-actions .sheet-action-btn:nth-child(2)');
-    var fakeEvent = { stopPropagation: function(){}, currentTarget: btn || document.body };
-    openNotesForHold(fakeEvent, sheetTaskId);
-  }
 }
 
 window.sheetSetPriority = async function(priority) {
@@ -4059,23 +4070,30 @@ async function sheetAddTag() {
 /* Note save from sheet */
 document.getElementById('sheet-note-save').addEventListener('click', sheetSaveNote);
 document.getElementById('sheet-note-hold-btn').addEventListener('click', async function() {
-  var text = document.getElementById('sheet-note-textarea').value.trim();
   if (!sheetTaskId) return;
-  if (!text) { flashNoteRequired('sheet-note-textarea'); return; }
   var task = tasks.find(function(t){ return t.id === sheetTaskId; });
   if (!task) return;
+  if (task.onHold) {
+    task.onHold = false;
+    await window.flowboard.saveTasks(tasks);
+    renderSheet(task);
+    renderBoard();
+    return;
+  }
+  var text = document.getElementById('sheet-note-textarea').value.trim();
+  if (!text) { flashNoteRequired('sheet-note-textarea'); return; }
   if (!task.notes) task.notes = [];
   task.notes.push({ text: text, ts: new Date().toISOString(), isHold: true });
   task.onHold = true;
   await window.flowboard.saveTasks(tasks);
   document.getElementById('sheet-note-textarea').value = '';
-  document.getElementById('sheet-note-hold-btn').disabled = true;
   renderSheetNotes(task);
   renderSheet(task);
   renderBoard();
 });
 document.getElementById('sheet-note-textarea').addEventListener('input', function() {
-  document.getElementById('sheet-note-hold-btn').disabled = !this.value.trim();
+  var task = tasks.find(function(t){ return t.id === sheetTaskId; });
+  if (task) syncNotesHoldBtn('sheet-note-hold-btn', 'Put on Hold', task);
 });
 document.getElementById('sheet-note-textarea').addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sheetSaveNote(); }
@@ -4091,7 +4109,7 @@ async function sheetSaveNote() {
   task.notes.push({ text: text, ts: new Date().toISOString() });
   await window.flowboard.saveTasks(tasks);
   document.getElementById('sheet-note-textarea').value = '';
-  document.getElementById('sheet-note-hold-btn').disabled = true;
+  syncNotesHoldBtn('sheet-note-hold-btn', 'Put on Hold', task);
   renderSheetNotes(task);
   renderBoard(); /* update note dot on card */
 }
