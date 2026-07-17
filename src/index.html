@@ -1098,6 +1098,11 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
 .sheet-stack-card.current { border-color:var(--accent); background:var(--accent-dim); cursor:default; }
 .sheet-stack-card.current:hover { transform:none; }
 .sheet-stack-card.is-parent { border-left:2px solid var(--accent); }
+.sheet-stack-children {
+  margin-top:2px; padding-left:12px; margin-left:6px;
+  border-left:2px solid var(--border2);
+  display:flex; flex-direction:column; gap:7px;
+}
 .sheet-stack-card-title { font-size:12.5px; font-weight:600; color:var(--text); line-height:1.4; margin-bottom:6px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
 .sheet-stack-card-meta { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
 .sheet-stack-card-due { font-size:10px; color:var(--text-muted); background:var(--surface3); border:0.5px solid var(--border2); padding:1px 6px; border-radius:4px; }
@@ -4089,11 +4094,10 @@ function renderSheetStackColumn(task) {
     return;
   }
   sheet.classList.add('has-stack');
-  var members = [stack.parent].concat(stack.children);
-  document.getElementById('sheet-stack-col-count').textContent = members.length;
-  document.getElementById('sheet-stack-col-body').innerHTML = members.map(function(t) {
+  document.getElementById('sheet-stack-col-count').textContent = stack.children.length + 1;
+
+  function memberCardHtml(t, isParentRow) {
     var isCurrent = t.id === task.id;
-    var isParentRow = t.id === stack.parent.id;
     var due = formatDue(t.due);
     var pb = PRIORITY_BADGE[t.priority] || PRIORITY_BADGE.low;
     return '<div class="sheet-stack-card' + (isCurrent ? ' current' : '') + (isParentRow ? ' is-parent' : '') + '"'
@@ -4104,7 +4108,10 @@ function renderSheetStackColumn(task) {
       + (due ? '<span class="sheet-stack-card-due ' + due.cls + '">' + due.label + '</span>' : '')
       + '<span class="priority-badge ' + pb.cls + '"><i class="ti ' + pb.icon + '"></i>' + pb.label + '</span>'
       + '</div></div>';
-  }).join('');
+  }
+
+  document.getElementById('sheet-stack-col-body').innerHTML = memberCardHtml(stack.parent, true)
+    + '<div class="sheet-stack-children">' + stack.children.map(function(c){ return memberCardHtml(c, false); }).join('') + '</div>';
 }
 
 function renderSheetNotes(task) {

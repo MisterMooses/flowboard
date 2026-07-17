@@ -1,5 +1,9 @@
 # Flowboard Changelog
 
+## v1.12.1
+### Bug Fixes & Improvements
+- **Stack column: subtasks are now visually nested under the parent** with an indent guide line, matching the tree-style treatment already used when expanding a stack on the board. The parent keeps its purple left-border accent; subtasks sit indented below it instead of all cards looking like plain uniform siblings.
+
 ## v1.12.0
 ### New Features
 - **Redesigned subtask visibility as a docked stack column in sheet view**, replacing the left-panel list from v1.11.0. Opening the sheet for any task in a stack (parent or child) now shows a separate panel to the right, styled like a board column but visually distinct (accent border, no blur bleed-through confusion with real columns) — with simplified subtask cards (title, due date, priority only). Click any card to jump to it; the column stays present for tree-like navigation between parent and subtasks, and the main sheet view stays centered with the column filling the space to its right.
