@@ -1,5 +1,9 @@
 # Flowboard Changelog
 
+## v1.7.0
+### New Features
+- **macOS build target added.** `electron-builder.yml` now includes a `mac` target (unsigned `.dmg`, reusing the existing app icon) alongside the Windows NSIS build. Run `npm run build:mac` to produce a local Mac build for development/testing. Windows remains the only signed, published, auto-updating target for testers.
+
 ## v1.6.2
 ### Changes & Fixes
 - **Hold moved into notes UI.** The Hold button is removed from the card action row. To put a task on hold, open the notes bubble or sheet view and use the Hold button inside the note input area. This enforces a hold reason naturally — the Hold button is disabled until text is entered. Attempting to click it empty flashes the border red and shows a brief red placeholder message.

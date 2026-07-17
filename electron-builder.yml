@@ -30,6 +30,14 @@ nsis:
   createStartMenuShortcut: true
   license: LICENSE.txt
 
+mac:
+  target: dmg
+  icon: assets/icon.png
+  identity: null
+
+dmg:
+  title: Flowboard
+
 publish:
   provider: github
   owner: MisterMooses
