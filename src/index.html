@@ -84,9 +84,10 @@ body.light #btn-update:hover { background:rgba(5,150,105,0.10); color:#047857; }
 #layout { display:flex; flex:1; overflow:hidden; }
 
 /* SIDEBAR */
-#sidebar { width:220px; background:var(--surface); border-right:0.5px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; padding:16px 0 12px; overflow-y:auto; }
-#sidebar::-webkit-scrollbar { width:3px; }
-#sidebar::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:2px; }
+#sidebar { width:220px; background:var(--surface); border-right:0.5px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; padding:16px 0 12px; overflow:hidden; }
+#sidebar-scroll { flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; }
+#sidebar-scroll::-webkit-scrollbar { width:3px; }
+#sidebar-scroll::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:2px; }
 .sidebar-section { padding:0 12px; margin-bottom:20px; }
 .sidebar-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-dim); margin-bottom:8px; padding:0 4px; }
 .sidebar-stat { display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:var(--radius-sm); margin-bottom:2px; }
@@ -98,7 +99,7 @@ body.light #btn-update:hover { background:rgba(5,150,105,0.10); color:#047857; }
 .sidebar-filter.active { background:var(--accent-dim); color:var(--accent); }
 .sidebar-filter i { font-size:15px; flex-shrink:0; }
 .sidebar-tag-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-#sidebar-bottom { margin-top:auto; padding:10px 12px 4px; border-top:0.5px solid var(--border); }
+#sidebar-bottom { flex-shrink:0; padding:10px 12px 4px; border-top:0.5px solid var(--border); }
 #sidebar-pill-row { display:flex; gap:4px; }
 .sidebar-pill {
   flex:1; display:flex; align-items:center; justify-content:center;
@@ -118,19 +119,19 @@ body.light #btn-update:hover { background:rgba(5,150,105,0.10); color:#047857; }
 #board-wrap { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 #board-toolbar { padding:10px 16px; display:flex; align-items:center; gap:10px; border-bottom:0.5px solid var(--border); flex-shrink:0; }
 #task-count-badge { font-size:11px; color:var(--text-muted); background:var(--surface2); padding:3px 10px; border-radius:20px; border:0.5px solid var(--border); margin-left:auto; }
-#board { flex:1; display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:14px; overflow-y:auto; align-items:start; }
-#board::-webkit-scrollbar { width:5px; }
-#board::-webkit-scrollbar-track { background:transparent; }
-#board::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:4px; }
+#board { flex:1; display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:14px; overflow:hidden; align-items:stretch; }
 
 /* COLUMNS */
-.column { background:var(--surface); border-radius:var(--radius); border:0.5px solid var(--border); display:flex; flex-direction:column; min-height:200px; transition:border-color 0.15s; }
+.column { background:var(--surface); border-radius:var(--radius); border:0.5px solid var(--border); display:flex; flex-direction:column; min-height:200px; overflow:hidden; transition:border-color 0.15s; }
 .column.drag-over { border-color:var(--accent); background:rgba(108,99,255,0.05); }
 .col-header { padding:11px 13px 10px; border-bottom:0.5px solid var(--border); display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .col-accent { width:3px; height:14px; border-radius:2px; flex-shrink:0; }
 .col-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); flex:1; }
 .col-badge { font-size:11px; color:var(--text-muted); background:var(--surface2); padding:1px 8px; border-radius:20px; }
-.col-body { padding:9px; display:flex; flex-direction:column; gap:7px; min-height:60px; }
+.col-body { padding:9px; display:flex; flex-direction:column; gap:7px; min-height:0; flex:1; overflow-y:auto; }
+.col-body::-webkit-scrollbar { width:5px; }
+.col-body::-webkit-scrollbar-track { background:transparent; }
+.col-body::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:4px; }
 
 /* CARDS */
 .card { background:var(--surface2); border-radius:var(--radius-sm); border:0.5px solid var(--border); padding:10px 11px 10px 14px; position:relative; transition:border-color 0.15s,transform 0.12s; cursor:grab; }
@@ -341,7 +342,7 @@ body.light .priority-badge.p-low      { background:#f8fafc; color:#64748B; borde
 body.light .tag-row-del:hover { color:#DC2626; background:rgba(220,38,38,0.07); border-color:rgba(220,38,38,0.25); }
 body.light .fb-tooltip { background:#1f2937; border-color:rgba(0,0,0,0.2); color:#f9fafb; }
 body.light .modal-overlay { background:rgba(0,0,0,0.35); }
-body.light #board::-webkit-scrollbar-thumb { background:#CBD5E1; }
+body.light .col-body::-webkit-scrollbar-thumb { background:#CBD5E1; }
 body.light #sidebar::-webkit-scrollbar-thumb { background:#CBD5E1; }
 body.light .column.drag-over { background:rgba(91,82,232,0.04); }
 
@@ -1318,6 +1319,7 @@ body.light #notes-hold-btn.hold-active, body.light #sheet-note-hold-btn.hold-act
 
 <div id="layout">
   <div id="sidebar">
+    <div id="sidebar-scroll">
     <div class="sidebar-section collapsed" id="section-weekly">
       <div class="sidebar-section-header" onclick="toggleSection('section-weekly')" data-tip="Meeting prep summary">
         <div class="sidebar-label" style="margin:0">Weekly Summary</div>
@@ -1379,6 +1381,7 @@ body.light #notes-hold-btn.hold-active, body.light #sheet-note-hold-btn.hold-act
       <div class="sidebar-collapsible">
         <div id="sidebar-tags"></div>
       </div>
+    </div>
     </div>
 
     <div id="sidebar-bottom">

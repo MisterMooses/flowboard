@@ -1,5 +1,10 @@
 # Flowboard Changelog
 
+## v1.10.0
+### New Features
+- **Sidebar bottom panel (settings, tags, archive) is now pinned.** Previously, expanding a collapsible filter section (Weekly Summary, Filter by Priority, Filter by Tag) pushed the bottom button row down and off the window. That row now stays fixed in place, and the filter sections scroll independently behind it.
+- **Columns are now capped to the board area and scroll individually.** Columns no longer grow taller than the window as cards are added — each column matches the board's height and scales with the window, with its own card list scrolling internally instead of the whole board scrolling as one unit.
+
 ## v1.9.0
 ### New Features
 - **On-hold badge added next to the due date in sheet view.** Opening a card that's on hold now shows an "On Hold" badge right beside the due date pill, so hold status is visible without scrolling to the notes panel.
