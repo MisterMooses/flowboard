@@ -1,5 +1,9 @@
 # Flowboard Changelog
 
+## v1.8.1
+### Bug Fixes & Improvements
+- **Fixed the "On Hold" badge sitting flush against the note timestamp** in both the notes bubble and the full sheet view. The timestamp row's flex layout collapsed the gap because the delete/restore icon button's own right-alignment margin was consuming all the row's free space, leaving none for the badge. Added an explicit gap so there's now clear separation.
+
 ## v1.8.0
 ### New Features
 - **Native macOS title bar.** The Mac build now uses real, OS-drawn traffic-light window controls (via `titleBarStyle: 'hiddenInset'`) instead of the Windows-style custom min/maximize/close buttons — matching macOS UI conventions. Windows is unaffected and keeps its existing custom title bar exactly as before.
