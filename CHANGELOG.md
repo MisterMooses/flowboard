@@ -1,5 +1,11 @@
 # Flowboard Changelog
 
+## v1.9.0
+### New Features
+- **On-hold badge added next to the due date in sheet view.** Opening a card that's on hold now shows an "On Hold" badge right beside the due date pill, so hold status is visible without scrolling to the notes panel.
+### Bug Fixes & Improvements
+- **Card on-hold badge now matches the amber styling used everywhere else** (notes, sheet view). It was previously a plain gray badge, inconsistent with every other on-hold indicator in the app.
+
 ## v1.8.1
 ### Bug Fixes & Improvements
 - **Fixed the "On Hold" badge sitting flush against the note timestamp** in both the notes bubble and the full sheet view. The timestamp row's flex layout collapsed the gap because the delete/restore icon button's own right-alignment margin was consuming all the row's free space, leaving none for the badge. Added an explicit gap so there's now clear separation.

@@ -139,7 +139,7 @@ body.light #btn-update:hover { background:rgba(5,150,105,0.10); color:#047857; }
 .card.on-hold { background:#181b26; border-color:var(--on-hold); border-style:dashed; }
 .card.on-hold .card-title { color:var(--text-muted); }
 .card.on-hold .card-bar { opacity:0.4; }
-.hold-badge { display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#64748B; background:#1e2433; border:0.5px solid #334155; padding:2px 7px; border-radius:4px; }
+.hold-badge { display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#F59E0B; background:rgba(245,158,11,0.15); border:0.5px solid rgba(245,158,11,0.4); padding:2px 7px; border-radius:4px; }
 .card.done { background:#0d1f18; border:1px solid rgba(16,185,129,0.45); }
 .card.done .card-title { color:#6ee7b7; opacity:0.75; }
 .card.done .card-bar { opacity:0.35; }
@@ -325,7 +325,7 @@ body.light .win-btn:hover { background:rgba(0,0,0,0.07); }
 body.light #btn-close:hover { background:#c42b1c; color:#fff; }
 body.light .card-btn:hover { background:#dde2f0; }
 body.light .card.on-hold { background:#edf0f7; border-color:#94A3B8; }
-body.light .hold-badge { color:#475569; background:#e2e8f0; border-color:#CBD5E1; }
+body.light .hold-badge { color:#B45309; background:rgba(180,83,9,0.1); border-color:rgba(180,83,9,0.35); }
 body.light .card.done { background:#ecfdf5; border-color:rgba(5,150,105,0.4); }
 body.light .card.done .card-title { color:#065f46; }
 body.light .card-btn.complete:hover { color:#059669; border-color:rgba(5,150,105,0.4); background:rgba(5,150,105,0.08); }
@@ -1102,6 +1102,7 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
   font-size:10px; font-weight:600; text-transform:uppercase;
   letter-spacing:0.08em; color:var(--text-dim); margin-bottom:6px;
 }
+#sheet-due-wrap { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 /* Priority options inline in sheet */
 .sheet-priority-opts { display:flex; flex-direction:column; gap:2px; }
 .sheet-priority-opt {
@@ -3926,7 +3927,6 @@ function closeSheet() {
 
 function renderSheet(task) {
   if (!task) return;
-  var due = formatDue(task.due);
   var isDone = task.column === 'done';
 
   /* Title */
@@ -3936,12 +3936,7 @@ function renderSheet(task) {
   document.getElementById('sheet-title-input').value = task.title;
 
   /* Due date */
-  var dueWrap = document.getElementById('sheet-due-wrap');
-  if (due) {
-    dueWrap.innerHTML = '<button class="card-due ' + due.cls + '" onclick="openCal(event,\'' + task.id + '\')" data-tip="Change due date"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</button>';
-  } else {
-    dueWrap.innerHTML = '<button class="card-add-due" onclick="openCal(event,\'' + task.id + '\')" data-tip="Set due date"><i class="ti ti-calendar" style="font-size:11px"></i>Set date</button>';
-  }
+  renderSheetDue(task);
 
   /* Priority */
   document.querySelectorAll('.sheet-priority-opt').forEach(function(btn) {
@@ -3965,6 +3960,17 @@ function renderSheet(task) {
   renderSheetNotes(task);
   document.getElementById('sheet-note-textarea').value = '';
   syncNotesHoldBtn('sheet-note-hold-btn', 'Put on Hold', task);
+}
+
+function renderSheetDue(task) {
+  var dueWrap = document.getElementById('sheet-due-wrap');
+  if (!dueWrap) return;
+  var due = formatDue(task.due);
+  var dueBtn = due
+    ? '<button class="card-due ' + due.cls + '" onclick="openCal(event,\'' + task.id + '\')" data-tip="Change due date"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</button>'
+    : '<button class="card-add-due" onclick="openCal(event,\'' + task.id + '\')" data-tip="Set due date"><i class="ti ti-calendar" style="font-size:11px"></i>Set date</button>';
+  var holdBadge = task.onHold ? '<span class="hold-badge"><i class="ti ti-player-pause" style="font-size:10px"></i>on hold</span>' : '';
+  dueWrap.innerHTML = dueBtn + holdBadge;
 }
 
 function renderSheetTags(task) {
@@ -4142,17 +4148,7 @@ window.pickDate = async function(dateStr) {
   await _origPickDate(dateStr);
   if (sheetTaskId) {
     var task = tasks.find(function(t){ return t.id === sheetTaskId; });
-    if (task) {
-      var dueWrap = document.getElementById('sheet-due-wrap');
-      if (dueWrap) {
-        var due = formatDue(task.due);
-        if (due) {
-          dueWrap.innerHTML = '<button class="card-due ' + due.cls + '" onclick="openCal(event,\'' + task.id + '\')" data-tip="Change due date"><i class="ti ti-calendar" style="font-size:11px"></i>' + due.label + '</button>';
-        } else {
-          dueWrap.innerHTML = '<button class="card-add-due" onclick="openCal(event,\'' + task.id + '\')" data-tip="Set due date"><i class="ti ti-calendar" style="font-size:11px"></i>Set date</button>';
-        }
-      }
-    }
+    if (task) renderSheetDue(task);
   }
 };
 document.getElementById('sheet-close').addEventListener('click', closeSheet);
