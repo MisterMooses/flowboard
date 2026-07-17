@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm start)",
+      "Bash(npm run build)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git pull)",
+      "Bash(git push)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Read(//C:/flowboard/**)",
+      "Edit(//C:/flowboard/src/**)",
+      "Edit(//C:/flowboard/*.js)",
+      "Edit(//C:/flowboard/*.md)",
+      "Edit(//C:/flowboard/*.json)",
+      "Edit(//C:/flowboard/*.yml)"
+    ],
+    "ask": [
+      "Bash(npm run publish)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Read(//C:/flowboard/.env)",
+      "Read(.env)"
+    ]
+  }
+}
