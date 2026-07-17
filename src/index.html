@@ -201,7 +201,8 @@ body.light .card-btn:hover { background:#d8ddef; }
 #cmd-btn:hover { opacity:0.88; }
 #cmd-btn:active { transform:scale(0.95); }
 #cmd-btn:disabled { opacity:0.5; cursor:default; }
-#cmd-status { font-size:11px; color:var(--accent); text-align:center; margin-top:6px; min-height:14px; }
+#cmd-status { font-size:11px; color:var(--accent); text-align:center; margin-top:6px; min-height:14px; font-weight:500; }
+#cmd-status.error { color:#F87171; font-weight:600; }
 #cmd-hint { font-size:10.5px; color:var(--text-dim); text-align:center; margin-top:3px; }
 
 /* MODALS */
@@ -2343,6 +2344,15 @@ function buildScheduleContext() {
 }
 
 /* ── Add task ── */
+function setCmdStatus(status, text, isError) {
+  status.textContent = text;
+  status.classList.toggle('error', !!isError);
+  setTimeout(function() {
+    status.textContent = '';
+    status.classList.remove('error');
+  }, isError ? 6000 : 4500);
+}
+
 async function addTask() {
   var input = document.getElementById('cmd-input');
   var btn   = document.getElementById('cmd-btn');
@@ -2354,6 +2364,7 @@ async function addTask() {
   btn.disabled = true;
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="spin"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.6" stroke-dasharray="28 10" stroke-linecap="round"/></svg>';
   status.textContent = 'Parsing your task...';
+  status.classList.remove('error');
   input.disabled = true;
 
   var knownTags = allTagNames().join(', ');
@@ -2410,7 +2421,9 @@ async function addTask() {
 
   try {
     var raw = await window.flowboard.callAnthropic({ apiKey: config.apiKey, prompt: text, system: systemPrompt });
-    var parsed = JSON.parse(raw);
+    var parsed;
+    try { parsed = JSON.parse(raw); }
+    catch (e) { throw new Error('AI response was malformed — try again.'); }
 
     function registerTags(t) {
       (t.tags || []).forEach(function(tag) {
@@ -2427,8 +2440,7 @@ async function addTask() {
     if (!Array.isArray(parsed) && parsed.action === 'note') {
       var matched = await addNoteToTask(parsed.targetTitle, parsed.note);
       input.value = ''; input.style.height = 'auto';
-      status.textContent = matched ? 'Note added to "' + matched + '"' : 'Could not find task "' + parsed.targetTitle + '"';
-      setTimeout(function(){ status.textContent = ''; }, 4000);
+      setCmdStatus(status, matched ? 'Note added to "' + matched + '"' : 'Could not find task "' + parsed.targetTitle + '"', !matched);
       btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       input.disabled = false; input.focus();
       return;
@@ -2444,8 +2456,7 @@ async function addTask() {
       await window.flowboard.saveTasks(tasks);
       renderBoard();
       input.value = ''; input.style.height = 'auto';
-      status.textContent = 'Created stack "' + parent.title + '" with ' + children.length + ' subtasks';
-      setTimeout(function(){ status.textContent = ''; }, 5000);
+      setCmdStatus(status, 'Created stack "' + parent.title + '" with ' + children.length + ' subtasks', false);
       btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       input.disabled = false; input.focus();
       return;
@@ -2456,8 +2467,7 @@ async function addTask() {
       var q = parsed.targetTitle.toLowerCase();
       var parentTask = tasks.find(function(t){ return t.title.toLowerCase().indexOf(q) !== -1 && !t.parentId; });
       if (!parentTask) {
-        status.textContent = 'Could not find task "' + parsed.targetTitle + '"';
-        setTimeout(function(){ status.textContent = ''; }, 4000);
+        setCmdStatus(status, 'Could not find task "' + parsed.targetTitle + '"', true);
         btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         input.disabled = false; input.focus();
         return;
@@ -2469,8 +2479,7 @@ async function addTask() {
       await window.flowboard.saveTasks(tasks);
       renderBoard();
       input.value = ''; input.style.height = 'auto';
-      status.textContent = 'Stack created for "' + parentTask.title + '" with ' + newChildren.length + ' subtasks';
-      setTimeout(function(){ status.textContent = ''; }, 5000);
+      setCmdStatus(status, 'Stack created for "' + parentTask.title + '" with ' + newChildren.length + ' subtasks', false);
       btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       input.disabled = false; input.focus();
       return;
@@ -2481,8 +2490,7 @@ async function addTask() {
       var q2 = parsed.targetTitle.toLowerCase();
       var stackParent = tasks.find(function(t){ return t.title.toLowerCase().indexOf(q2) !== -1 && !t.parentId; });
       if (!stackParent) {
-        status.textContent = 'Could not find stack "' + parsed.targetTitle + '"';
-        setTimeout(function(){ status.textContent = ''; }, 4000);
+        setCmdStatus(status, 'Could not find stack "' + parsed.targetTitle + '"', true);
         btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         input.disabled = false; input.focus();
         return;
@@ -2494,8 +2502,7 @@ async function addTask() {
       await window.flowboard.saveTasks(tasks);
       renderBoard();
       input.value = ''; input.style.height = 'auto';
-      status.textContent = 'Added ' + addedChildren.length + ' subtask' + (addedChildren.length !== 1 ? 's' : '') + ' to "' + stackParent.title + '"';
-      setTimeout(function(){ status.textContent = ''; }, 5000);
+      setCmdStatus(status, 'Added ' + addedChildren.length + ' subtask' + (addedChildren.length !== 1 ? 's' : '') + ' to "' + stackParent.title + '"', false);
       btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       input.disabled = false; input.focus();
       return;
@@ -2503,6 +2510,7 @@ async function addTask() {
 
     /* Standard new task(s) */
     var arr = Array.isArray(parsed) ? parsed : [parsed];
+    if (!arr.length) throw new Error('AI did not return a task — try rephrasing.');
     var newTasks = arr.map(function(t){ return makeTask(t); });
     await saveTags();
     tasks = tasks.concat(newTasks);
@@ -2511,11 +2519,11 @@ async function addTask() {
     input.value = '';
     input.style.height = 'auto';
     var label = newTasks.length === 1 ? '"' + newTasks[0].title + '"' : newTasks.length + ' tasks';
-    status.textContent = 'Added ' + label;
-    setTimeout(function(){ status.textContent = ''; }, 4000);
+    setCmdStatus(status, 'Added ' + label, false);
   } catch(e) {
-    status.textContent = (e.message && e.message.indexOf('auth') !== -1) ? 'Invalid API key.' : 'Something went wrong. Try again.';
-    setTimeout(function(){ status.textContent = ''; }, 5000);
+    var msg = e.message || '';
+    var friendly = msg.indexOf('auth') !== -1 ? 'Invalid API key.' : (msg || 'Something went wrong. Try again.');
+    setCmdStatus(status, friendly, true);
   }
 
   btn.disabled = false;

@@ -163,7 +163,7 @@ ipcMain.handle('call-anthropic', async (_, { apiKey, prompt, system }) => {
     const systemPrompt = system || 'Return only valid JSON. No markdown, no preamble.';
     const body = JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1000,
+      max_tokens: 4096,
       system: systemPrompt,
       messages: [{ role: 'user', content: prompt }],
     });
@@ -184,11 +184,13 @@ ipcMain.handle('call-anthropic', async (_, { apiKey, prompt, system }) => {
         try {
           const parsed = JSON.parse(data);
           if (parsed.error) return reject(new Error(parsed.error.message));
-          const text = parsed.content?.find(b => b.type === 'text')?.text || '[]';
-          resolve(text.replace(/```json|```/g, '').trim());
+          const textBlock = parsed.content?.find(b => b.type === 'text');
+          if (!textBlock) return reject(new Error('AI response contained no text — try again.'));
+          resolve(textBlock.text.replace(/```json|```/g, '').trim());
         } catch (e) { reject(e); }
       });
     });
+    req.setTimeout(30000, () => req.destroy(new Error('Request to Anthropic API timed out — try again.')));
     req.on('error', reject);
     req.write(body);
     req.end();

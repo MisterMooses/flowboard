@@ -1,5 +1,12 @@
 # Flowboard Changelog
 
+## v1.7.2
+### Bug Fixes & Improvements
+- **Fixed the command bar occasionally submitting a task with nothing happening.** If the AI's response ever came back with no usable text (rare API edge case), the app silently treated it as "zero tasks" with no visible error — the prompt looked like it vanished. It now surfaces a clear red error message instead, and doing the same for a genuinely empty or malformed response.
+- **Raised the AI response token limit** (1000 → 4096) so longer requests — especially breaking a task into a stack with several subtasks — are far less likely to get cut off mid-response and fail to parse.
+- **Added a 30-second timeout** to the AI request so a hung connection fails with a clear message instead of spinning indefinitely.
+- **Error messages in the command bar are now visually distinct from success messages** (red vs. the usual accent color) so a failed request is obvious instead of easy to mistake for confirmation.
+
 ## v1.7.1
 ### Bug Fixes & Improvements
 - **Hold button now correctly flips to Resume.** After putting a task on hold from the notes bubble or sheet view, the button stayed labeled "Hold"/"Put on Hold" and disabled until a note was typed. It now shows "Resume" with amber active styling, is immediately clickable, and no longer requires text to resume.
