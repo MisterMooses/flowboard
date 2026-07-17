@@ -1033,7 +1033,7 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
 /* ── Sheet view ── */
 #card-sheet {
   position:fixed; top:var(--titlebar-h); right:0; bottom:0; left:0; z-index:300;
-  display:none; align-items:flex-start; justify-content:center;
+  display:none; align-items:flex-start; justify-content:center; gap:16px;
 }
 #card-sheet.open { display:flex; }
 #sheet-backdrop {
@@ -1049,7 +1049,7 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
   border:0.5px solid var(--border2);
   border-radius:10px;
   box-shadow:0 24px 64px rgba(0,0,0,0.45);
-  width:min(860px, calc(100vw - 48px));
+  flex:0 1 680px; min-width:420px;
   height:min(680px, calc(100vh - var(--titlebar-h) - 48px));
   margin-top:24px;
   display:flex; flex-direction:column;
@@ -1060,6 +1060,49 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
   from { opacity:0; transform:translateY(10px) scale(0.98); }
   to   { opacity:1; transform:translateY(0) scale(1); }
 }
+/* Stack column: only shown when the open task is part of a stack (parent or child).
+   #sheet-stack-spacer is an invisible twin of the column's width, placed on the
+   OTHER side of #sheet-panel, so justify-content:center still centers the panel
+   itself rather than the (panel+column) pair — the column then reads as extra
+   space to the right, not as something the sheet was centered around. */
+#sheet-stack-spacer, #sheet-stack-column { display:none; flex:0 1 260px; min-width:180px; }
+#card-sheet.has-stack #sheet-stack-spacer { display:block; }
+#card-sheet.has-stack #sheet-stack-column { display:flex; }
+#sheet-stack-column {
+  position:relative; z-index:1; flex-direction:column;
+  margin-top:24px;
+  height:min(680px, calc(100vh - var(--titlebar-h) - 48px));
+  background:var(--surface2);
+  border:1px solid var(--accent);
+  border-radius:10px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.45), 0 0 0 3px var(--accent-dim);
+  overflow:hidden;
+  animation:sheet-in 0.18s cubic-bezier(0.4,0,0.2,1);
+}
+#sheet-stack-col-header {
+  display:flex; align-items:center; gap:6px;
+  padding:11px 13px 10px; border-bottom:0.5px solid var(--border);
+  font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--accent); flex-shrink:0;
+}
+#sheet-stack-col-header .col-badge { margin-left:auto; text-transform:none; letter-spacing:normal; }
+#sheet-stack-col-body { flex:1; min-height:0; overflow-y:auto; padding:9px; display:flex; flex-direction:column; gap:7px; }
+#sheet-stack-col-body::-webkit-scrollbar { width:5px; }
+#sheet-stack-col-body::-webkit-scrollbar-track { background:transparent; }
+#sheet-stack-col-body::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:4px; }
+.sheet-stack-card {
+  background:var(--surface); border-radius:var(--radius-sm); border:0.5px solid var(--border);
+  padding:9px 10px; cursor:pointer; transition:border-color 0.15s,transform 0.12s;
+}
+.sheet-stack-card:hover { border-color:var(--border2); transform:translateY(-1px); }
+.sheet-stack-card.current { border-color:var(--accent); background:var(--accent-dim); cursor:default; }
+.sheet-stack-card.current:hover { transform:none; }
+.sheet-stack-card.is-parent { border-left:2px solid var(--accent); }
+.sheet-stack-card-title { font-size:12.5px; font-weight:600; color:var(--text); line-height:1.4; margin-bottom:6px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.sheet-stack-card-meta { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+.sheet-stack-card-due { font-size:10px; color:var(--text-muted); background:var(--surface3); border:0.5px solid var(--border2); padding:1px 6px; border-radius:4px; }
+.sheet-stack-card-due.overdue { color:#F87171; background:rgba(248,113,113,0.1); border-color:rgba(248,113,113,0.3); }
+.sheet-stack-card-due.soon { color:#F59E0B; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3); }
 #sheet-header {
   display:flex; align-items:flex-start; gap:10px;
   padding:16px 18px 14px; border-bottom:0.5px solid var(--border);
@@ -1133,15 +1176,6 @@ body.light .card-due.soon { color:#B45309; background:rgba(180,83,9,0.08); borde
   transition:opacity 0.1s;
 }
 .sheet-tag:hover .sheet-tag-remove { opacity:1; }
-#sheet-subtasks-list { max-height:150px; overflow-y:auto; display:flex; flex-direction:column; gap:1px; }
-#sheet-subtasks-list::-webkit-scrollbar { width:3px; }
-#sheet-subtasks-list::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:2px; }
-.sheet-subtask-row { display:flex; align-items:center; gap:6px; padding:5px 6px; border-radius:5px; cursor:pointer; transition:background 0.12s; }
-.sheet-subtask-row:hover { background:var(--surface2); }
-.sheet-subtask-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-.sheet-subtask-title { font-size:12px; color:var(--text); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.sheet-subtask-row.done .sheet-subtask-title { color:var(--text-dim); text-decoration:line-through; opacity:0.75; }
-.sheet-subtask-check { width:12px; height:12px; flex-shrink:0; color:#10B981; display:flex; align-items:center; justify-content:center; }
 #sheet-tag-add-wrap { display:flex; gap:4px; margin-top:4px; }
 #sheet-tag-input {
   flex:1; background:var(--surface2); border:0.5px solid var(--border2);
@@ -1569,6 +1603,7 @@ body.light #notes-hold-btn.hold-active, body.light #sheet-note-hold-btn.hold-act
 <!-- Card Sheet View -->
 <div id="card-sheet">
   <div id="sheet-backdrop" onclick="closeSheet()"></div>
+  <div id="sheet-stack-spacer"></div>
   <div id="sheet-panel">
     <div id="sheet-header">
       <div id="sheet-title-wrap">
@@ -1639,14 +1674,6 @@ body.light #notes-hold-btn.hold-active, body.light #sheet-note-hold-btn.hold-act
           <!-- Existing tag picker popout -->
           <div id="sheet-tag-picker" style="display:none;flex-wrap:wrap;gap:4px;margin-top:6px;padding:6px;background:var(--surface3);border-radius:6px;max-height:120px;overflow-y:auto"></div>
         </div>
-        <!-- Subtasks (only shown for stack parents) -->
-        <div id="sheet-subtasks-section" style="display:none">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="sheet-section-label" style="margin-bottom:0">Subtasks</div>
-            <div id="sheet-subtasks-progress" style="font-size:10px;color:var(--text-dim)"></div>
-          </div>
-          <div id="sheet-subtasks-list"></div>
-        </div>
         <!-- Actions -->
         <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px">
           <div id="sheet-tag-add-wrap" style="display:flex;gap:4px">
@@ -1668,6 +1695,14 @@ body.light #notes-hold-btn.hold-active, body.light #sheet-note-hold-btn.hold-act
         </div>
       </div>
     </div>
+  </div>
+  <div id="sheet-stack-column">
+    <div id="sheet-stack-col-header">
+      <i class="ti ti-sitemap" style="font-size:13px"></i>
+      <span>Stack</span>
+      <span id="sheet-stack-col-count" class="col-badge">0</span>
+    </div>
+    <div id="sheet-stack-col-body"></div>
   </div>
 </div>
 
@@ -2386,7 +2421,22 @@ function setCmdStatus(status, text, isError) {
 
 function scrollToCard(id) {
   var card = document.querySelector('.card[data-id="' + id + '"]');
-  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!card) return;
+  var container = card.closest('.col-body');
+  if (!container) { card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return; }
+  /* scrollIntoView only guarantees the card's own box is visible — it doesn't know
+     about the new-card glow (box-shadow) extending past that box, so the glow can
+     end up clipped by the column's overflow. Reserve a buffer for it here. */
+  var buffer = 24;
+  var cardRect = card.getBoundingClientRect();
+  var containerRect = container.getBoundingClientRect();
+  var delta = 0;
+  if (cardRect.bottom + buffer > containerRect.bottom) {
+    delta = (cardRect.bottom + buffer) - containerRect.bottom;
+  } else if (cardRect.top - buffer < containerRect.top) {
+    delta = (cardRect.top - buffer) - containerRect.top;
+  }
+  if (delta !== 0) container.scrollTo({ top: container.scrollTop + delta, behavior: 'smooth' });
 }
 
 async function addTask() {
@@ -3978,8 +4028,8 @@ function renderSheet(task) {
   /* Tags */
   renderSheetTags(task);
 
-  /* Subtasks */
-  renderSheetSubtasks(task);
+  /* Stack column (tree navigation between parent and subtasks) */
+  renderSheetStackColumn(task);
 
   /* Actions */
   var completeCls = isDone ? ' complete-active' : '';
@@ -4021,28 +4071,39 @@ function renderSheetTags(task) {
   }).join('');
 }
 
-function renderSheetSubtasks(task) {
-  var section = document.getElementById('sheet-subtasks-section');
-  var children = getChildren(task.id);
-  if (!children.length) {
-    section.style.display = 'none';
+/* A task belongs to a stack if it IS a parent (has children) or IS a child (has a parentId).
+   Either way, the "stack" is the parent plus all its children. */
+function getStackMembers(task) {
+  var parent = task.parentId ? tasks.find(function(t){ return t.id === task.parentId; }) : task;
+  if (!parent) return null;
+  var children = getChildren(parent.id);
+  if (!children.length) return null;
+  return { parent: parent, children: sortChildrenByDue(children) };
+}
+
+function renderSheetStackColumn(task) {
+  var sheet = document.getElementById('card-sheet');
+  var stack = getStackMembers(task);
+  if (!stack) {
+    sheet.classList.remove('has-stack');
     return;
   }
-  section.style.display = 'block';
-  var prog = stackProgress(task.id);
-  document.getElementById('sheet-subtasks-progress').textContent = prog.done + '/' + prog.total + ' done';
-  var sorted = sortChildrenByDue(children);
-  document.getElementById('sheet-subtasks-list').innerHTML = sorted.map(function(c) {
-    var isDone = c.column === 'done';
-    var color = PRIORITY_COLORS[c.priority] || '#64748B';
-    var check = isDone
-      ? '<span class="sheet-subtask-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2.5 2.5L8.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
-      : '';
-    return '<div class="sheet-subtask-row' + (isDone ? ' done' : '') + '" onclick="openSheet(\'' + c.id + '\')" data-tip="Open subtask">'
-      + '<span class="sheet-subtask-dot" style="background:' + color + '"></span>'
-      + '<span class="sheet-subtask-title">' + escHtml(c.title) + '</span>'
-      + check
-      + '</div>';
+  sheet.classList.add('has-stack');
+  var members = [stack.parent].concat(stack.children);
+  document.getElementById('sheet-stack-col-count').textContent = members.length;
+  document.getElementById('sheet-stack-col-body').innerHTML = members.map(function(t) {
+    var isCurrent = t.id === task.id;
+    var isParentRow = t.id === stack.parent.id;
+    var due = formatDue(t.due);
+    var pb = PRIORITY_BADGE[t.priority] || PRIORITY_BADGE.low;
+    return '<div class="sheet-stack-card' + (isCurrent ? ' current' : '') + (isParentRow ? ' is-parent' : '') + '"'
+      + (isCurrent ? '' : ' onclick="openSheet(\'' + t.id + '\')"')
+      + ' data-tip="' + (isCurrent ? 'Currently viewing' : isParentRow ? 'Open parent task' : 'Open subtask') + '">'
+      + '<div class="sheet-stack-card-title">' + escHtml(t.title) + '</div>'
+      + '<div class="sheet-stack-card-meta">'
+      + (due ? '<span class="sheet-stack-card-due ' + due.cls + '">' + due.label + '</span>' : '')
+      + '<span class="priority-badge ' + pb.cls + '"><i class="ti ' + pb.icon + '"></i>' + pb.label + '</span>'
+      + '</div></div>';
   }).join('');
 }
 

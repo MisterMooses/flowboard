@@ -1,5 +1,11 @@
 # Flowboard Changelog
 
+## v1.12.0
+### New Features
+- **Redesigned subtask visibility as a docked stack column in sheet view**, replacing the left-panel list from v1.11.0. Opening the sheet for any task in a stack (parent or child) now shows a separate panel to the right, styled like a board column but visually distinct (accent border, no blur bleed-through confusion with real columns) — with simplified subtask cards (title, due date, priority only). Click any card to jump to it; the column stays present for tree-like navigation between parent and subtasks, and the main sheet view stays centered with the column filling the space to its right.
+### Bug Fixes & Improvements
+- **Fixed new-card auto-scroll clipping the highlight glow.** When a new card landed at the bottom of a column, `scrollIntoView` only accounted for the card's own box, not the glow extending past it — the bottom of the glow (and sometimes the border) got cut off. Scrolling now reserves a buffer so the full glow is visible.
+
 ## v1.11.0
 ### New Features
 - **New cards are now highlighted and scrolled into view when added.** The card (or stack parent) you just created gets a soft purple glow and border for a moment so it's easy to spot, and its column automatically scrolls to reveal it. The highlight fades gently the first time you mouse over the card.
