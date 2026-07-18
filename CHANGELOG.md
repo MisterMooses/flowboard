@@ -1,5 +1,11 @@
 # Flowboard Changelog
 
+## v1.13.0
+### New Features
+- **Cards now flow across the board automatically as their due date approaches**, leaning into the app's "flow" concept. Tasks start in Backlog and move to Up Next ahead of their due date — critical tasks get two work weeks of lead time, high priority gets one work week, medium/low get half a work week — then move unconditionally to In Progress on their due date. Movement is always forward-only: a manual drag never gets auto-corrected backward, and marking a card complete stays entirely manual. The lead times scale off your work-days setting, so a shorter work week gets proportionally shorter notice.
+### Bug Fixes & Improvements
+- **Board sort order changed to due-date-first, priority as tiebreaker** (previously priority-first, due-date-second) — a critical task due today now correctly sorts above a low-priority task due in three weeks. On-hold tasks continue to sink to the bottom of their column regardless of due date.
+
 ## v1.12.1
 ### Bug Fixes & Improvements
 - **Stack column: subtasks are now visually nested under the parent** with an indent guide line, matching the tree-style treatment already used when expanding a stack on the board. The parent keeps its purple left-border accent; subtasks sit indented below it instead of all cards looking like plain uniform siblings.

@@ -1981,11 +1981,17 @@ async function saveTags() {
 }
 
 /* ── Format helpers ── */
-function formatDue(dateStr) {
+function daysUntilDue(dateStr) {
   if (!dateStr) return null;
   var d = new Date(dateStr + 'T12:00:00');
   var now = new Date(); now.setHours(0,0,0,0);
-  var diff = Math.floor((d - now) / 86400000);
+  return Math.floor((d - now) / 86400000);
+}
+
+function formatDue(dateStr) {
+  if (!dateStr) return null;
+  var d = new Date(dateStr + 'T12:00:00');
+  var diff = daysUntilDue(dateStr);
   var label = d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
   return { label: label, cls: diff < 0 ? 'overdue' : diff <= 2 ? 'soon' : '' };
 }
@@ -1994,13 +2000,23 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function priorityCompare(a, b) {
+  var pa = PRIORITY_ORDER[a.priority] !== undefined ? PRIORITY_ORDER[a.priority] : 4;
+  var pb = PRIORITY_ORDER[b.priority] !== undefined ? PRIORITY_ORDER[b.priority] : 4;
+  return pa - pb;
+}
+
 function sortedTasks(arr) {
   return arr.slice().sort(function(a, b) {
     var hd = (a.onHold ? 1 : 0) - (b.onHold ? 1 : 0);
     if (hd) return hd;
-    var pa = PRIORITY_ORDER[a.priority] !== undefined ? PRIORITY_ORDER[a.priority] : 4;
-    var pb = PRIORITY_ORDER[b.priority] !== undefined ? PRIORITY_ORDER[b.priority] : 4;
-    return pa - pb;
+    /* Due date first — ascending, undated tasks sink below dated ones */
+    if (!a.due && !b.due) return priorityCompare(a, b);
+    if (!a.due) return 1;
+    if (!b.due) return -1;
+    if (a.due !== b.due) return a.due < b.due ? -1 : 1;
+    /* Same due date — priority breaks the tie */
+    return priorityCompare(a, b);
   });
 }
 
@@ -2217,8 +2233,42 @@ function renderSidebarTags() {
   el.innerHTML = html;
 }
 
+/* ── Auto-flow: tasks migrate backlog -> next -> progress as their due date
+   approaches, with higher-priority tasks getting more lead time. Movement is
+   forward-only — it never demotes a task, so a manual drag (or a prior auto
+   move) always sticks as a floor; the due date arriving always still pushes
+   a task on to "progress" regardless of how it got to its current column. */
+var FLOW_COLUMN_ORDER = { backlog: 0, next: 1, progress: 2 };
+
+function computeNaturalColumn(task) {
+  if (!task.due) return null;
+  var diff = daysUntilDue(task.due);
+  if (diff <= 0) return 'progress';
+  var workWeekLen = getWorkDays().length || 5;
+  var leadDays;
+  if (task.priority === 'critical') leadDays = workWeekLen * 2;
+  else if (task.priority === 'high') leadDays = workWeekLen * 1;
+  else leadDays = Math.ceil(workWeekLen * 0.5);
+  return diff <= leadDays ? 'next' : 'backlog';
+}
+
+function applyAutoFlow() {
+  var changed = false;
+  tasks.forEach(function(t) {
+    if (t.archived || t.column === 'done') return;
+    var natural = computeNaturalColumn(t);
+    if (!natural) return;
+    var curIdx = FLOW_COLUMN_ORDER[t.column];
+    var natIdx = FLOW_COLUMN_ORDER[natural];
+    if (curIdx === undefined || natIdx === undefined) return;
+    if (natIdx > curIdx) { t.column = natural; changed = true; }
+  });
+  return changed;
+}
+
 /* ── Board renderer ── */
 function renderBoard() {
+  if (applyAutoFlow()) window.flowboard.saveTasks(tasks);
   var visible = visibleTasks();
   COLS.forEach(function(col) {
     /* Top-level tasks only — children render inside their parent's stack */
